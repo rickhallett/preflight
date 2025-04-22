@@ -7,6 +7,7 @@ import QuestionnaireWizard from "./QuestionnaireWizard";
 import QuestionnaireList from "./QuestionnaireList";
 import { useState } from "react";
 import { ThemeProvider } from "./components/theme-provider";
+import { Button } from "@/components/ui/button";
 
 export default function App() {
   const user = useQuery(api.auth.loggedInUser);
@@ -34,27 +35,27 @@ export default function App() {
               {user?.role === "guest" && (
                 <div className="text-center">
                   <h2 className="text-2xl font-bold mb-4">Upgrade to Access</h2>
-                  <button
+                  <Button
                     onClick={() => {
                       void createCheckoutSession().then((url) => {
                         if (url) window.location.href = url;
                       });
                     }}
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
                   >
                     Upgrade Now
-                  </button>
+                  </Button>
                 </div>
               )}
               {user?.role === "paid" && (
                 isStartingNew ? (
                   <div>
-                    <button
+                    <Button
+                      variant="link"
                       onClick={() => setIsStartingNew(false)}
-                      className="mb-4 text-blue-500 hover:text-blue-600"
+                      className="mb-4"
                     >
                       ← Back to home
-                    </button>
+                    </Button>
                     <QuestionnaireWizard onComplete={() => setIsStartingNew(false)} />
                   </div>
                 ) : (
@@ -64,12 +65,12 @@ export default function App() {
                       <p className="text-gray-600 mb-8 text-lg">
                         Start your journey by completing our comprehensive questionnaire
                       </p>
-                      <button
+                      <Button
+                        size="lg"
                         onClick={() => setIsStartingNew(true)}
-                        className="bg-blue-500 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-600 transition-colors"
                       >
                         Start New Questionnaire
-                      </button>
+                      </Button>
                     </div>
                     <QuestionnaireList onStartNew={() => setIsStartingNew(true)} />
                   </div>

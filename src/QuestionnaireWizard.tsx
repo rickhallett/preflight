@@ -3,6 +3,17 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
 import { Id } from "../convex/_generated/dataModel";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface QuestionnaireWizardProps {
   onComplete?: () => void;
@@ -12,7 +23,7 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [questionnaireId, setQuestionnaireId] = useState<Id<"questionnaires"> | null>(null);
-  
+
   const steps = useQuery(api.steps.list);
   const createQuestionnaire = useMutation(api.questionnaires.createQuestionnaire);
   const saveAnswer = useMutation(api.questionnaires.saveAnswer);
@@ -30,7 +41,7 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
 
       const step = steps[currentStep];
       const value = answers[step._id];
-      
+
       if (!value && !confirm("Skip this question?")) {
         return;
       }
@@ -70,6 +81,10 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
     }));
   };
 
+  const handleSelectChange = (value: string) => {
+    handleChange(value);
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
@@ -89,67 +104,65 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
         <h3 className="text-xl font-semibold mb-4">{currentQuestion.prompt}</h3>
 
         {currentQuestion.type === "text" && (
-          <textarea
+          <Textarea
             value={answers[currentQuestion._id] as string ?? ""}
             onChange={e => handleChange(e.target.value)}
-            className="w-full p-2 border rounded-md"
             rows={4}
           />
         )}
 
         {currentQuestion.type === "select" && (
-          <select
+          <Select
             value={answers[currentQuestion._id] as string ?? ""}
-            onChange={e => handleChange(e.target.value)}
-            className="w-full p-2 border rounded-md"
+            onValueChange={handleSelectChange}
           >
-            <option value="">Select an option...</option>
-            {currentQuestion.options?.map(option => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select an option..." />
+            </SelectTrigger>
+            <SelectContent>
+              {currentQuestion.options?.map(option => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
 
         {currentQuestion.type === "multiselect" && (
           <div className="space-y-2">
             {currentQuestion.options?.map(option => (
-              <label key={option} className="flex items-center">
-                <input
-                  type="checkbox"
+              <div key={option} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`${currentQuestion._id}-${option}`}
                   checked={(answers[currentQuestion._id] as string[] ?? []).includes(option)}
-                  onChange={e => {
+                  onCheckedChange={checked => {
                     const current = answers[currentQuestion._id] as string[] ?? [];
-                    if (e.target.checked) {
+                    if (checked) {
                       handleChange([...current, option]);
                     } else {
                       handleChange(current.filter(v => v !== option));
                     }
                   }}
-                  className="mr-2"
                 />
-                {option}
-              </label>
+                <Label htmlFor={`${currentQuestion._id}-${option}`}>{option}</Label>
+              </div>
             ))}
           </div>
         )}
       </div>
 
       <div className="flex justify-between">
-        <button
+        <Button
+          variant="outline"
           onClick={handleBack}
           disabled={currentStep === 0}
-          className="px-4 py-2 text-gray-600 disabled:opacity-50"
         >
           Back
-        </button>
-        <button
-          onClick={handleNext}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-        >
+        </Button>
+        <Button onClick={() => void handleNext()}>
           {currentStep === steps.length - 1 ? "Finish" : "Next"}
-        </button>
+        </Button>
       </div>
     </div>
   );
