@@ -1,3 +1,107 @@
+# .cursorrules
+# PreFlight Intake – coding & style rules
+#
+# This file is read by Cursor (and other AI tools) to guide code generation
+# and reviews.  It mixes human‑legible prose with declarative bullet points.
+# Update it whenever major conventions change.
+
+You are an expert full‑stack TypeScript & React 19 engineer with deep knowledge of:
+
+• React 19 + Vite                     • Bun package manager & runtime
+• Convex 1.21 (alpha)                 • Tailwind CSS / shadcn/ui
+• React‑Hook‑Form & Zod               • Vitest & @testing‑library/react
+• Playwright (manual only, no auto‑runs yet)  • Accessibility (WCAG 2.2 AA)
+
+Follow every rule below when generating **code or explanations** for
+Project PreFlight Intake.
+
+---
+
+## General Principles
+1. Produce **concise, production‑ready TypeScript** – no `any`, enable `strict`.
+2. Prefer **functional components** and React hooks; no class components.
+3. Keep components ≤ 150 LOC; extract child components when larger.
+4. Write pure functions; side‑effects live in React `useEffect` or Convex actions.
+5. All code must run under **Bun** (`bun install`, `bun run <script>`).
+
+---
+
+## File & Directory Conventions
+- `src/components/**/*.tsx` UI components (export default when single export)
+- `src/lib/**/*.ts`       Pure utilities
+- `convex/*.ts`           Convex functions & schema
+- `tests/**/*.test.ts`     Unit tests (Vitest)
+- `specs/**/*.md`         Living documentation
+- `public/`               Static assets
+- Use **PascalCase** for React components, **camelCase** for functions/vars,
+  **UPPER_SNAKE_CASE** for constants & env keys.
+
+---
+
+## React & Vite
+- Import React only when JSX transformations require explicit `import`.
+- Wrap forms with `react-hook-form`’s `FormProvider`; validate with `zodResolver`.
+- Strictly type props with `interface Props { … }`.
+- Handle async calls with Suspense + React 19 hooks when feasible.
+
+---
+
+## Convex
+- Schema lives in `convex/schema.ts`; every table property must use
+  a validator (`v.string()`, etc.).
+- Use **row‑level access control** in queries & mutations (`ctx.auth`).
+- Keep functions pure; long‑running tasks go to `actions/`.
+
+---
+
+## Styling (Tailwind + shadcn/ui)
+- Compose Tailwind classes with `clsx` or `tailwind‑merge`.
+- Do not override shadcn/ui components in CSS; extend via `className`.
+- Maintain colour contrast ≥ 4.5:1 for text vs. background.
+
+---
+
+## Testing (Vitest)
+- Write a unit test for every non‑trivial utility and business rule.
+- Mock Convex client or React Query as needed—no live network calls.
+- Aim for ≥ 80 % statement coverage.
+
+---
+
+## Accessibility
+- All interactive elements must be keyboard‑navigable (`tabindex` flow).
+- Provide `aria‑label` or visible text for every control.
+- Use semantic HTML (`<button>` not `<div>`).
+
+---
+
+## Commit Guide
+- Follow **Conventional Commits**:
+  - `feat(ui): add StepProgress breadcrumb`
+  - `fix(convex): handle auth error`
+  - `test(lib): add validators unit test`
+- One atomic commit per passing test run.
+- Commit message body (if any) should describe the rationale, not the diff.
+
+---
+
+## Forbidden
+- No `console.log` in committed code (use Bun’s logger or debug tools).
+- No inline styles except for Tailwind `style` prop overrides.
+- Avoid `any`, `as unknown as`, or `// @ts-ignore` unless unavoidable—
+  and then justify in code comment.
+
+---
+
+## Update Policy
+- The agent MUST update `specs/architecture.md` **immediately before each
+  commit** with any structural changes (new tables, new scripts, major
+  directory moves).
+- If `.cursorrules` itself changes, stage and commit it in a separate
+  `docs(rules): …` commit after all tests pass.
+
+---
+
 # Convex guidelines
 ## Function guidelines
 ### New function syntax
