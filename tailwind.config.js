@@ -1,9 +1,14 @@
-const {} = require("tailwindcss/defaultTheme");
+const { } = require("tailwindcss/defaultTheme");
 
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  mode: "jit",
-  purge: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
-  variants: {
+  darkMode: 'class',
+  content: [
+    "./index.html",
+    "./src/**/*.{vue,js,ts,jsx,tsx}"
+  ],
+  theme: {
     extend: {},
   },
+  plugins: [],
 };

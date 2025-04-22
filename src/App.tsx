@@ -19,8 +19,8 @@ export default function App() {
 
 
       <div className="min-h-screen flex flex-col">
-        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm p-4 flex justify-between items-center border-b">
-          <h2 className="text-xl font-semibold accent-text">PreFlight Intake</h2>
+        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm p-4 flex justify-between items-center border-b">
+          <h2 className="text-xl font-semibold text-primary">PreFlight Intake</h2>
           <SignOutButton />
         </header>
         <main className="flex-1 p-8">
@@ -62,7 +62,7 @@ export default function App() {
                   <div>
                     <div className="text-center mb-12">
                       <h1 className="text-4xl font-bold mb-6">Welcome to PreFlight</h1>
-                      <p className="text-gray-600 mb-8 text-lg">
+                      <p className="text-muted-foreground mb-8 text-lg">
                         Start your journey by completing our comprehensive questionnaire
                       </p>
                       <Button

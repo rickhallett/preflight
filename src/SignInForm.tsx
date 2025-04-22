@@ -44,7 +44,7 @@ export function SignInForm() {
         <Button type="submit" disabled={submitting}>
           {flow === "signIn" ? "Sign in" : "Sign up"}
         </Button>
-        <div className="text-center text-sm text-slate-600">
+        <div className="text-center text-sm text-muted-foreground">
           <span>
             {flow === "signIn"
               ? "Don't have an account? "
@@ -61,9 +61,9 @@ export function SignInForm() {
         </div>
       </form>
       <div className="flex items-center justify-center my-3">
-        <hr className="my-4 grow" />
-        <span className="mx-4 text-slate-400 ">or</span>
-        <hr className="my-4 grow" />
+        <hr className="my-4 grow border-border" />
+        <span className="mx-4 text-muted-foreground">or</span>
+        <hr className="my-4 grow border-border" />
       </div>
       <Button variant="secondary" onClick={() => void signIn("anonymous")}>
         Sign in anonymously

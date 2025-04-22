@@ -53,18 +53,18 @@ export default function QuestionnaireList({ onStartNew }: QuestionnaireListProps
 
       {completedQuestionnaires.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">You haven't completed any questionnaires yet.</p>
+          <p className="text-muted-foreground mb-4">You haven't completed any questionnaires yet.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {completedQuestionnaires.map((questionnaire) => (
             <div
               key={questionnaire._id}
-              className="bg-white rounded-lg p-6 shadow-sm border"
+              className="bg-card rounded-lg p-6 shadow-sm border"
             >
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Completed on {new Date(questionnaire.completedAt!).toLocaleDateString()}
                   </p>
                 </div>
@@ -77,7 +77,7 @@ export default function QuestionnaireList({ onStartNew }: QuestionnaireListProps
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-gray-400 hover:text-red-500"
+                        className="text-muted-foreground hover:text-destructive"
                       >
                         <Trash2 className="h-5 w-5" />
                         <span className="sr-only">Delete Questionnaire</span>
@@ -94,7 +94,6 @@ export default function QuestionnaireList({ onStartNew }: QuestionnaireListProps
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => void handleDelete(questionnaire._id)}
-                          className="bg-red-500 hover:bg-red-600"
                         >
                           Delete
                         </AlertDialogAction>

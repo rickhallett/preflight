@@ -88,19 +88,19 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <div className="flex justify-between text-sm text-gray-500">
+        <div className="flex justify-between text-sm text-muted-foreground">
           <span>Question {currentStep + 1} of {steps.length}</span>
           <span>{Math.round(((currentStep + 1) / steps.length) * 100)}% complete</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+        <div className="w-full bg-secondary rounded-full h-2 mt-2">
           <div
-            className="bg-blue-500 h-2 rounded-full transition-all"
+            className="bg-primary h-2 rounded-full transition-all"
             style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-lg p-6 shadow-sm border mb-6">
+      <div className="bg-card rounded-lg p-6 shadow-sm border mb-6">
         <h3 className="text-xl font-semibold mb-4">{currentQuestion.prompt}</h3>
 
         {currentQuestion.type === "text" && (
