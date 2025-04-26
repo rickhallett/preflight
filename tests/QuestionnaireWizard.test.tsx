@@ -141,6 +141,24 @@ const mockSteps = [
       'IT Department Lead',
       'Other'
     ],
+  },
+  {
+    _id: 'step10_id',
+    prdId: 'step-10-patient-population',
+    index: 9,
+    title: 'Patient-Population Characteristics & Equity Concerns',
+    prompt: 'Select all relevant characteristics of your patient population:',
+    type: 'multiselect',
+    options: [
+      'High non-English-speaking share',
+      'Predominantly rural coverage',
+      'Paediatric focus',
+      'Geriatric focus',
+      'High prevalence of specific chronic conditions (e.g., Diabetes, COPD)',
+      'Underserved / vulnerable populations',
+      'Technologically underserved (low digital literacy/access)',
+      'Other significant demographic factors'
+    ],
   }
 ];
 
@@ -840,6 +858,87 @@ describe('QuestionnaireWizard', () => {
       expect(saveAnswer).toHaveBeenCalled();
       expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
         value: "CIO (Chief Information Officer)",
+        skipped: false
+      }));
+    });
+  });
+
+  // Add a test for patient population multiselect
+  test('should render and interact with patient population multiselect', async () => {
+    render(<QuestionnaireWizard />);
+    
+    // Navigate through 9 steps to reach the 10th step (patient population)
+    const nextButton = screen.getByRole('button', { name: /next/i });
+    
+    // Submit all previous steps
+    for (let i = 0; i < 9; i++) {
+      // For step 1 (text input)
+      if (i === 0) {
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step answer' } });
+      }
+      // For step 2 (select input)
+      else if (i === 1) {
+        const selectTrigger = screen.getByRole('combobox');
+        fireEvent.click(selectTrigger);
+        await waitFor(() => {
+          fireEvent.click(screen.getByRole('option', { name: mockSteps[1].options?.[0] || '' }));
+        });
+      }
+      // For steps 3-4 and 7 (multiselect inputs), steps 5-6 and 9 (radio), step 8 (slider)
+      else {
+        if (i === 2 || i === 3 || i === 6) {
+          const checkboxes = screen.getAllByRole('checkbox');
+          fireEvent.click(checkboxes[0]);
+        } else if (i === 4 || i === 5 || i === 8) {
+          const radioButtons = screen.getAllByRole('radio');
+          fireEvent.click(radioButtons[0]);
+        } else if (i === 7) {
+          const slider = screen.getByRole('slider');
+          fireEvent.change(slider, { target: { value: 100 } });
+        }
+      }
+      
+      // Click Next to proceed to next step
+      fireEvent.click(nextButton);
+      
+      // Wait for the next step to appear
+      await waitFor(() => {
+        expect(screen.getByText(mockSteps[i + 1].prompt)).toBeInTheDocument();
+      });
+    }
+    
+    // Now we should be on the 10th step (patient population)
+    // Verify multiselect rendering
+    await waitFor(() => {
+      expect(screen.getByText(mockSteps[9].prompt)).toBeInTheDocument();
+      
+      // Check all options are rendered with checkboxes
+      mockSteps[9].options?.forEach(option => {
+        expect(screen.getByText(option)).toBeInTheDocument();
+      });
+      
+      // Check the checkboxes are rendered
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes.length).toBe(mockSteps[9].options?.length || 0);
+    });
+    
+    // Select multiple options
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[2]); // Paediatric focus
+    fireEvent.click(checkboxes[3]); // Geriatric focus
+    
+    // Submit with multiple selections
+    fireEvent.click(screen.getByRole('button', { name: /finish/i }));
+    
+    // Verify the saveAnswer call with the multiple selections
+    await waitFor(() => {
+      const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
+      expect(saveAnswer).toHaveBeenCalled();
+      expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
+        value: expect.arrayContaining([
+          'Paediatric focus',
+          'Geriatric focus'
+        ]),
         skipped: false
       }));
     });
