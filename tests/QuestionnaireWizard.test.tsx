@@ -222,6 +222,20 @@ const mockSteps = [
       '4',
       '5 (Critically important)'
     ],
+  },
+  {
+    _id: 'step15_id',
+    prdId: 'step-15-deployment-preference',
+    index: 14,
+    title: 'Deployment Preference',
+    prompt: 'What is your preferred deployment model?',
+    type: 'radio',
+    options: [
+      'Cloud-based (SaaS)',
+      'On-premise installation',
+      'Mobile application (if applicable)',
+      'Hybrid model'
+    ],
   }
 ];
 
