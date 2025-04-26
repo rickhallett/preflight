@@ -20,6 +20,7 @@
 # ├── .python-version  # unwatched
 # ├── .watchlist  # unwatched
 # ├── README.md  # unwatched
+# ├── bp_tracker.py  # unwatched
 # ├── bun.lock  # unwatched
 # ├── components.json  # unwatched
 # ├── convex
@@ -42,10 +43,10 @@
 # ├── dist
 # │   └── index.html  # unwatched
 # ├── docs
+# │   ├── DO_NOT_IMPLEMENT_added_value_spec.md  # unwatched
 # │   ├── firecrawl_mcp_server.md  # unwatched
 # │   └── questionnaire_steps.md  # unwatched
 # ├── eslint.config.js  # unwatched
-# ├── hello.py
 # ├── index.html  # unwatched
 # ├── package-lock.json  # unwatched
 # ├── package.json  # unwatched
@@ -53,9 +54,48 @@
 # ├── pyproject.toml  # unwatched
 # ├── setup.mjs  # unwatched
 # ├── specs
+# │   ├── added_value_spec.md  # unwatched
 # │   ├── agent_workflow.md  # unwatched
+# │   ├── agent_workflow_prd.md  # unwatched
 # │   ├── architecture.md  # unwatched
-# │   └── mvp_spec.md  # unwatched
+# │   ├── mvp_spec.md  # unwatched
+# │   └── prds
+# │       ├── README.md  # unwatched
+# │       ├── step-01-workflow-bottlenecks.md  # unwatched
+# │       ├── step-02-data-sources.md  # unwatched
+# │       ├── step-03-success-metrics.md  # unwatched
+# │       ├── step-04-integration-points.md  # unwatched
+# │       ├── step-05-regulatory-constraints.md  # unwatched
+# │       ├── step-06-ai-literacy.md  # unwatched
+# │       ├── step-07-privacy-risk-tolerance.md  # unwatched
+# │       ├── step-08-budget-procurement.md  # unwatched
+# │       ├── step-09-decision-roles.md  # unwatched
+# │       ├── step-10-patient-population.md  # unwatched
+# │       ├── step-11-monitoring-owner.md  # unwatched
+# │       ├── step-12-alerting-speed.md  # unwatched
+# │       ├── step-13-ai-responsibility.md  # unwatched
+# │       ├── step-14-ai-rationale-importance.md  # unwatched
+# │       ├── step-15-deployment-preference.md  # unwatched
+# │       ├── step-16-training-preferences.md  # unwatched
+# │       ├── step-17-time-to-value.md  # unwatched
+# │       ├── step-18-interoperability-standards.md  # unwatched
+# │       ├── step-19-data-governance.md  # unwatched
+# │       ├── step-20-change-management.md  # unwatched
+# │       ├── step-21-feedback-loop.md  # unwatched
+# │       ├── step-22-telehealth-plans.md  # unwatched
+# │       ├── step-23-high-risk-scenarios.md  # unwatched
+# │       ├── step-24-data-labeling-capacity.md  # unwatched
+# │       ├── step-25-technical-constraints.md  # unwatched
+# │       ├── step-26-funding-source.md  # unwatched
+# │       ├── step-27-human-signoff.md  # unwatched
+# │       ├── step-28-previous-ai-experience.md  # unwatched
+# │       ├── step-29-specialty-use-cases.md  # unwatched
+# │       ├── step-30-ui-ux-preferences.md  # unwatched
+# │       ├── step-31-preferred-vendors.md  # unwatched
+# │       ├── step-32-patient-engagement.md  # unwatched
+# │       ├── step-33-consent-practice.md  # unwatched
+# │       ├── step-34-data-sharing.md  # unwatched
+# │       └── step-35-upcoming-upgrades.md  # unwatched
 # ├── src
 # │   ├── App.tsx  # unwatched
 # │   ├── QuestionnaireList.tsx  # unwatched

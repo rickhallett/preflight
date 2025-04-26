@@ -12,11 +12,15 @@ const applicationTables = {
     .index("by_user", ["userId"])
     .index("by_status", ["status"]),
   steps: defineTable({
+    prdId: v.string(),
     index: v.number(),
     type: v.string(),
     prompt: v.string(),
+    title: v.optional(v.string()),
     options: v.optional(v.array(v.string())),
-  }),
+  })
+    .index("by_prdId", ["prdId"])
+    .index("by_index", ["index"]),
   answers: defineTable({
     questionnaireId: v.id("questionnaires"),
     stepId: v.id("steps"),

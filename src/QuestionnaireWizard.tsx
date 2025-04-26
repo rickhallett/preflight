@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
 import { Id } from "../convex/_generated/dataModel";
+import { useForm, FormProvider, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -14,14 +17,24 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface QuestionnaireWizardProps {
   onComplete?: () => void;
 }
 
+// Define a base schema - make it permissive for dynamic field names
+const formSchema = z.record(z.string(), z.any());
+
 export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [questionnaireId, setQuestionnaireId] = useState<Id<"questionnaires"> | null>(null);
 
   const steps = useQuery(api.steps.list);
@@ -29,34 +42,42 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
   const saveAnswer = useMutation(api.questionnaires.saveAnswer);
   const completeQuestionnaire = useMutation(api.questionnaires.completeQuestionnaire);
 
-  if (!steps) return null;
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
 
-  const handleNext = async () => {
+  if (!steps) return <div>Loading steps...</div>;
+  if (steps.length === 0) return <div>No questionnaire steps found.</div>;
+
+  const currentQuestion = steps[currentStepIndex];
+  const fieldName = currentQuestion.prdId ?? currentQuestion._id;
+
+  const onSubmit = async (formData: z.infer<typeof formSchema>) => {
+    const value = formData[fieldName];
+    const skipped = !value || (Array.isArray(value) && value.length === 0);
+
+    if (skipped && !confirm("Skip this question?")) {
+      return;
+    }
+
     try {
-      let currentQuestionnaireId = questionnaireId;
-      if (!currentQuestionnaireId) {
-        currentQuestionnaireId = await createQuestionnaire();
-        setQuestionnaireId(currentQuestionnaireId);
-      }
-
-      const step = steps[currentStep];
-      const value = answers[step._id];
-
-      if (!value && !confirm("Skip this question?")) {
-        return;
+      let qId = questionnaireId;
+      if (!qId) {
+        qId = await createQuestionnaire();
+        setQuestionnaireId(qId);
       }
 
       await saveAnswer({
-        questionnaireId: currentQuestionnaireId,
-        stepId: step._id,
+        questionnaireId: qId,
+        stepId: currentQuestion._id,
         value: value ?? "",
-        skipped: !value,
+        skipped: skipped,
       });
 
-      if (currentStep < steps.length - 1) {
-        setCurrentStep(currentStep + 1);
+      if (currentStepIndex < steps.length - 1) {
+        setCurrentStepIndex(currentStepIndex + 1);
       } else {
-        await completeQuestionnaire({ questionnaireId: currentQuestionnaireId });
+        await completeQuestionnaire({ questionnaireId: qId });
         toast.success("Questionnaire completed!");
         onComplete?.();
       }
@@ -67,103 +88,129 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
   };
 
   const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex(currentStepIndex - 1);
     }
   };
 
-  const currentQuestion = steps[currentStep];
-
-  const handleChange = (value: string | string[]) => {
-    setAnswers(prev => ({
-      ...prev,
-      [currentQuestion._id]: value,
-    }));
-  };
-
-  const handleSelectChange = (value: string) => {
-    handleChange(value);
-  };
-
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Question {currentStep + 1} of {steps.length}</span>
-          <span>{Math.round(((currentStep + 1) / steps.length) * 100)}% complete</span>
-        </div>
-        <div className="w-full bg-secondary rounded-full h-2 mt-2">
-          <div
-            className="bg-primary h-2 rounded-full transition-all"
-            style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="bg-card rounded-lg p-6 shadow-sm border mb-6">
-        <h3 className="text-xl font-semibold mb-4">{currentQuestion.prompt}</h3>
-
-        {currentQuestion.type === "text" && (
-          <Textarea
-            value={answers[currentQuestion._id] as string ?? ""}
-            onChange={e => handleChange(e.target.value)}
-            rows={4}
-          />
-        )}
-
-        {currentQuestion.type === "select" && (
-          <Select
-            value={answers[currentQuestion._id] as string ?? ""}
-            onValueChange={handleSelectChange}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select an option..." />
-            </SelectTrigger>
-            <SelectContent>
-              {currentQuestion.options?.map(option => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {currentQuestion.type === "multiselect" && (
-          <div className="space-y-2">
-            {currentQuestion.options?.map(option => (
-              <div key={option} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`${currentQuestion._id}-${option}`}
-                  checked={(answers[currentQuestion._id] as string[] ?? []).includes(option)}
-                  onCheckedChange={checked => {
-                    const current = answers[currentQuestion._id] as string[] ?? [];
-                    if (checked) {
-                      handleChange([...current, option]);
-                    } else {
-                      handleChange(current.filter(v => v !== option));
-                    }
-                  }}
-                />
-                <Label htmlFor={`${currentQuestion._id}-${option}`}>{option}</Label>
-              </div>
-            ))}
+    <FormProvider {...form}> {/* Provide form context */}
+      <Form {...form}>
+        <form onSubmit={(e) => void form.handleSubmit(onSubmit)(e)} className="max-w-2xl mx-auto">
+          <div className="mb-8">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Question {currentStepIndex + 1} of {steps.length}</span>
+              <span>{Math.round(((currentStepIndex + 1) / steps.length) * 100)}% complete</span>
+            </div>
+            <div className="w-full bg-secondary rounded-full h-2 mt-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all"
+                style={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
+              />
+            </div>
           </div>
-        )}
-      </div>
 
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={currentStep === 0}
-        >
-          Back
-        </Button>
-        <Button onClick={() => void handleNext()}>
-          {currentStep === steps.length - 1 ? "Finish" : "Next"}
-        </Button>
-      </div>
-    </div>
+          <div className="bg-card rounded-lg p-6 shadow-sm border mb-6">
+            <h3 className="text-xl font-semibold mb-4">{currentQuestion.prompt}</h3>
+
+            {currentQuestion.type === "text" && (
+              <FormField
+                control={form.control}
+                name={fieldName}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Textarea {...field} rows={4} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {currentQuestion.type === "select" && (
+              <FormField
+                control={form.control}
+                name={fieldName}
+                render={({ field }) => (
+                  <FormItem>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an option..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {currentQuestion.options?.map((option: string) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {currentQuestion.type === "multiselect" && (
+              <FormField
+                control={form.control}
+                name={fieldName}
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                    </div>
+                    {currentQuestion.options?.map((option: string) => (
+                      <FormField
+                        key={option}
+                        control={form.control}
+                        name={fieldName}
+                        render={({ field }) => {
+                          const currentValues = Array.isArray(field.value) ? field.value : [];
+                          return (
+                            <FormItem key={option} className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={currentValues.includes(option)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...currentValues, option])
+                                      : field.onChange(currentValues.filter((v) => v !== option));
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {option}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
+
+          <div className="flex justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBack}
+              disabled={currentStepIndex === 0}
+            >
+              Back
+            </Button>
+            <Button type="submit">
+              {currentStepIndex === steps.length - 1 ? "Finish" : "Next"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }

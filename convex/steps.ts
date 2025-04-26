@@ -1,5 +1,6 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { v } from "convex/values";
 
 const STEPS = [
   {
@@ -42,9 +43,58 @@ const STEPS = [
 export const seedSteps = mutation({
   args: {},
   handler: async (ctx) => {
-    for (const step of STEPS) {
-      await ctx.db.insert("steps", step);
+    console.warn(
+      "Existing seedSteps mutation called, but its implementation is commented out."
+    );
+    console.warn("Use `bunx convex run scripts/seed_steps_from_prds.mjs` instead.");
+    // Implementation commented out due to schema changes (prdId required)
+    // for (const step of STEPS) {
+    //   // @ts-ignore - Ignore implicit any for deprecated seed
+    //   await ctx.db.insert("steps", step);
+    // }
+  },
+});
+
+const stepDataValidator = v.object({
+  prdId: v.string(),
+  index: v.number(),
+  title: v.string(),
+  prompt: v.string(),
+  type: v.string(),
+  options: v.optional(v.array(v.string())),
+});
+
+export const addOrUpdateStep = internalMutation({
+  args: { stepData: stepDataValidator },
+  handler: async (ctx, { stepData }) => {
+    const existingStep = await ctx.db
+      .query("steps")
+      .withIndex("by_prdId", (q) => q.eq("prdId", stepData.prdId))
+      .unique();
+
+    if (existingStep) {
+      await ctx.db.patch(existingStep._id, stepData);
+      console.log(`Updated step: ${stepData.prdId}`);
+      return existingStep._id;
+    } else {
+      const newStepId = await ctx.db.insert("steps", stepData);
+      console.log(`Inserted new step: ${stepData.prdId}`);
+      return newStepId;
     }
+  },
+});
+
+export const deleteAllSteps = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const allSteps = await ctx.db.query("steps").collect();
+    let deletedCount = 0;
+    for (const step of allSteps) {
+      await ctx.db.delete(step._id);
+      deletedCount++;
+    }
+    console.log(`Deleted ${deletedCount} steps.`);
+    return { deletedCount };
   },
 });
 
