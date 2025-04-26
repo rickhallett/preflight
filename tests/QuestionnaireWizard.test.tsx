@@ -207,6 +207,21 @@ const mockSteps = [
       'Depends on the situation',
       'Other (Specify if possible)'
     ],
+  },
+  {
+    _id: 'step14_id',
+    prdId: 'step-14-ai-rationale-importance',
+    index: 13,
+    title: 'AI Rationale Importance',
+    prompt: 'Rank how important it is that the AI can show a rationale you can present to patients.',
+    type: 'radio',
+    options: [
+      '1 (Not important)',
+      '2',
+      '3 (Moderately important)',
+      '4',
+      '5 (Critically important)'
+    ],
   }
 ];
 
