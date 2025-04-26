@@ -97,6 +97,24 @@ const mockSteps = [
     prompt: 'On a scale of 1-5, how confident are you explaining what a large language model is?',
     type: 'radio',
     options: ['1 (Not confident at all)', '2', '3 (Somewhat confident)', '4', '5 (Very confident)'],
+  },
+  {
+    _id: 'step7_id',
+    prdId: 'step-07-privacy-risk-tolerance',
+    index: 6,
+    title: 'Privacy & Ethical Risk Tolerance',
+    prompt: 'Which of the following risks would prevent adoption?',
+    type: 'multiselect',
+    options: [
+      'Misdiagnosis potential', 
+      'Patient data leakage', 
+      'Algorithmic bias propagation', 
+      'Lack of result explainability', 
+      'Vendor lock-in', 
+      'High implementation cost', 
+      'Staff resistance', 
+      'Other (Specify if possible)'
+    ],
   }
 ];
 
@@ -565,6 +583,84 @@ describe('QuestionnaireWizard', () => {
       expect(saveAnswer).toHaveBeenCalled();
       expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
         value: "5 (Very confident)",
+        skipped: false
+      }));
+    });
+  });
+
+  // Add a test for privacy risk tolerance multiselect
+  test('should handle multiple selections for privacy risk tolerance step', async () => {
+    render(<QuestionnaireWizard />);
+    
+    // Navigate through 6 steps to reach the 7th step (privacy risk tolerance)
+    const nextButton = screen.getByRole('button', { name: /next/i });
+    
+    // Submit all previous steps
+    for (let i = 0; i < 6; i++) {
+      // For step 1 (text input)
+      if (i === 0) {
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step answer' } });
+      }
+      // For step 2 (select input)
+      else if (i === 1) {
+        const selectTrigger = screen.getByRole('combobox');
+        fireEvent.click(selectTrigger);
+        await waitFor(() => {
+          fireEvent.click(screen.getByRole('option', { name: mockSteps[1].options?.[0] || '' }));
+        });
+      }
+      // For steps 3-4 (multiselect inputs) and steps 5-6 (radio)
+      else {
+        if (i === 2 || i === 3) {
+          const checkboxes = screen.getAllByRole('checkbox');
+          fireEvent.click(checkboxes[0]);
+        } else if (i === 4 || i === 5) {
+          const radioButtons = screen.getAllByRole('radio');
+          fireEvent.click(radioButtons[0]);
+        }
+      }
+      
+      // Click Next to proceed to next step
+      fireEvent.click(nextButton);
+      
+      // Wait for the next step to appear
+      await waitFor(() => {
+        expect(screen.getByText(mockSteps[i + 1].prompt)).toBeInTheDocument();
+      });
+    }
+    
+    // Now we should be on the 7th step (privacy risk tolerance)
+    // Verify multiselect rendering
+    await waitFor(() => {
+      expect(screen.getByText(mockSteps[6].prompt)).toBeInTheDocument();
+      
+      // Check all options are rendered with checkboxes
+      mockSteps[6].options?.forEach(option => {
+        expect(screen.getByText(option)).toBeInTheDocument();
+      });
+      
+      // Check the checkboxes are rendered
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes.length).toBe(mockSteps[6].options?.length || 0);
+    });
+    
+    // Select multiple options - patient data leakage and high implementation cost
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[1]); // Patient data leakage
+    fireEvent.click(checkboxes[5]); // High implementation cost
+    
+    // Submit with multiple selections
+    fireEvent.click(screen.getByRole('button', { name: /finish/i }));
+    
+    // Verify the saveAnswer call with the multiple selections
+    await waitFor(() => {
+      const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
+      expect(saveAnswer).toHaveBeenCalled();
+      expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
+        value: expect.arrayContaining([
+          'Patient data leakage',
+          'High implementation cost'
+        ]),
         skipped: false
       }));
     });
