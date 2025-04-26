@@ -88,6 +88,15 @@ const mockSteps = [
     prompt: 'Does your organisation permit cloud processing of PHI? (If no, please explain briefly)',
     type: 'radio',
     options: ['Yes', 'No'],
+  },
+  {
+    _id: 'step6_id',
+    prdId: 'step-06-ai-literacy',
+    index: 5,
+    title: 'AI Literacy & Comfort Level',
+    prompt: 'On a scale of 1-5, how confident are you explaining what a large language model is?',
+    type: 'radio',
+    options: ['1 (Not confident at all)', '2', '3 (Somewhat confident)', '4', '5 (Very confident)'],
   }
 ];
 
@@ -479,6 +488,83 @@ describe('QuestionnaireWizard', () => {
       expect(saveAnswer).toHaveBeenCalled();
       expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
         value: "Yes",
+        skipped: false
+      }));
+    });
+  });
+
+  // Add a test for Likert scale radio input
+  test('should render Likert scale radio buttons for AI literacy step', async () => {
+    render(<QuestionnaireWizard />);
+    
+    // Navigate through 5 steps to reach the 6th step (AI literacy)
+    const nextButton = screen.getByRole('button', { name: /next/i });
+    
+    // Submit all previous steps
+    for (let i = 0; i < 5; i++) {
+      // For step 1 (text input)
+      if (i === 0) {
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step answer' } });
+      }
+      // For step 2 (select input)
+      else if (i === 1) {
+        const selectTrigger = screen.getByRole('combobox');
+        fireEvent.click(selectTrigger);
+        await waitFor(() => {
+          fireEvent.click(screen.getByRole('option', { name: mockSteps[1].options?.[0] || '' }));
+        });
+      }
+      // For steps 3-4 (multiselect inputs) and step 5 (radio)
+      else {
+        if (i === 2 || i === 3) {
+          const checkboxes = screen.getAllByRole('checkbox');
+          fireEvent.click(checkboxes[0]);
+        } else if (i === 4) {
+          const radioButtons = screen.getAllByRole('radio');
+          fireEvent.click(radioButtons[0]);
+        }
+      }
+      
+      // Click Next to proceed to next step
+      fireEvent.click(nextButton);
+      
+      // Wait for the next step to appear
+      await waitFor(() => {
+        expect(screen.getByText(mockSteps[i + 1].prompt)).toBeInTheDocument();
+      });
+    }
+    
+    // Now we should be on the 6th step (AI literacy)
+    // Verify Likert scale radio rendering
+    await waitFor(() => {
+      expect(screen.getByText(mockSteps[5].prompt)).toBeInTheDocument();
+      
+      // Check all options are rendered with radio buttons
+      mockSteps[5].options?.forEach(option => {
+        expect(screen.getByText(option)).toBeInTheDocument();
+      });
+      
+      // Check the radio buttons are rendered - should be 5 for the Likert scale
+      const radioButtons = screen.getAllByRole('radio');
+      expect(radioButtons.length).toBe(5);
+    });
+    
+    // Select "5 (Very confident)" option
+    const radioButtons = screen.getAllByRole('radio');
+    fireEvent.click(radioButtons[4]); // Select the highest confidence level
+    
+    // Verify the radio value is selected
+    expect(radioButtons[4]).toBeChecked();
+    
+    // Submit with radio selection
+    fireEvent.click(screen.getByRole('button', { name: /finish/i }));
+    
+    // Verify the saveAnswer call with the Likert scale selection
+    await waitFor(() => {
+      const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
+      expect(saveAnswer).toHaveBeenCalled();
+      expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
+        value: "5 (Very confident)",
         skipped: false
       }));
     });
