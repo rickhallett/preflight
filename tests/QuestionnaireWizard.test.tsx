@@ -79,6 +79,15 @@ const mockSteps = [
     prompt: 'Which systems would this AI need to plug into? (e.g., EHR, PACS, scheduling, billing…)',
     type: 'multiselect',
     options: ['EHR / EMR', 'PACS', 'Scheduling System', 'Billing System', 'Lab Information System (LIS)', 'Pharmacy System', 'Other (Specify)'],
+  },
+  {
+    _id: 'step5_id',
+    prdId: 'step-05-regulatory-constraints',
+    index: 4,
+    title: 'Regulatory & Compliance Constraints',
+    prompt: 'Does your organisation permit cloud processing of PHI? (If no, please explain briefly)',
+    type: 'radio',
+    options: ['Yes', 'No'],
   }
 ];
 
@@ -387,6 +396,91 @@ describe('QuestionnaireWizard', () => {
       
       // Should have checkboxes (one for each option)
       expect(screen.getAllByRole('checkbox').length).toBe(mockSteps[3].options?.length || 0);
+    });
+  });
+
+  // Add a new test for radio input type
+  test('should render radio buttons for radio-type question', async () => {
+    render(<QuestionnaireWizard />);
+    
+    // Navigate to the fifth step (radio type)
+    const nextButton = screen.getByRole('button', { name: /next/i });
+    
+    // Submit first step
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step 1 answer' } });
+    fireEvent.click(nextButton);
+    
+    // Wait for second step, then submit it
+    await waitFor(() => {
+      expect(screen.getByText(mockSteps[1].prompt)).toBeInTheDocument();
+    });
+    
+    // Select an option for the select input
+    const selectTrigger = screen.getByRole('combobox');
+    fireEvent.click(selectTrigger);
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('option', { name: 'EHR' }));
+    });
+    
+    // Submit second step
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    
+    // Wait for third step (multiselect), then submit it
+    await waitFor(() => {
+      expect(screen.getByText(mockSteps[2].prompt)).toBeInTheDocument();
+    });
+    
+    // Select an option for the multiselect
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[0]); // Select first option
+    
+    // Submit third step
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    
+    // Wait for fourth step (integration-points), then submit it
+    await waitFor(() => {
+      expect(screen.getByText(mockSteps[3].prompt)).toBeInTheDocument();
+    });
+    
+    // Select an option for integration points
+    const integrationCheckboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(integrationCheckboxes[0]); // Select first option
+    
+    // Submit fourth step
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    
+    // Verify radio button rendering for regulatory constraints
+    await waitFor(() => {
+      expect(screen.getByText(mockSteps[4].prompt)).toBeInTheDocument();
+      
+      // Check all options are rendered with radio buttons
+      mockSteps[4].options?.forEach(option => {
+        expect(screen.getByText(option)).toBeInTheDocument();
+      });
+      
+      // Check the radio buttons are rendered
+      const radioButtons = screen.getAllByRole('radio');
+      expect(radioButtons.length).toBe(mockSteps[4].options?.length || 0);
+    });
+    
+    // Select "Yes" option
+    const radioButtons = screen.getAllByRole('radio');
+    fireEvent.click(radioButtons[0]); // Select "Yes"
+    
+    // Verify the radio value is selected
+    expect(radioButtons[0]).toBeChecked();
+    
+    // Submit with radio selection
+    fireEvent.click(screen.getByRole('button', { name: /finish/i }));
+    
+    // Verify the saveAnswer call with radio selection
+    await waitFor(() => {
+      const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
+      expect(saveAnswer).toHaveBeenCalled();
+      expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
+        value: "Yes",
+        skipped: false
+      }));
     });
   });
 }); 
