@@ -1,3 +1,137 @@
+# === WATCHER HEADER START ===
+# File: .cursorrules
+# Managed by file watcher
+# Project Tree Structure:
+# 
+# NOTE TO ASSISTANT: Remember to add new files to .watchlist to receive headers.
+#       Files not in .watchlist won't receive headers, even if visible in this tree.
+# 
+# NOTE TO ASSISTANT: If you notice directories that don't add value to the context
+#       (like build outputs, cache, etc), suggest adding them to .donotwatchlist
+#       to keep the tree structure focused and clean.
+# 
+# ├── .cursor
+# │   └── rules
+# │       └── convex_rules.mdc  # unwatched
+# ├── .cursorrules  # unwatched
+# ├── .donotwatchlist  # unwatched
+# ├── .env.local  # unwatched
+# ├── .gitignore  # unwatched
+# ├── .python-version  # unwatched
+# ├── .watchlist  # unwatched
+# ├── README.md  # unwatched
+# ├── bun.lock  # unwatched
+# ├── components.json  # unwatched
+# ├── convex
+# │   ├── _generated
+# │   │   ├── api.d.ts  # unwatched
+# │   │   ├── api.js  # unwatched
+# │   │   ├── dataModel.d.ts  # unwatched
+# │   │   ├── server.d.ts  # unwatched
+# │   │   └── server.js  # unwatched
+# │   ├── auth.config.ts  # unwatched
+# │   ├── auth.ts  # unwatched
+# │   ├── crons.ts  # unwatched
+# │   ├── http.ts  # unwatched
+# │   ├── questionnaires.ts  # unwatched
+# │   ├── reminders.ts  # unwatched
+# │   ├── schema.ts  # unwatched
+# │   ├── steps.ts  # unwatched
+# │   ├── stripe.ts  # unwatched
+# │   └── tsconfig.json  # unwatched
+# ├── dist
+# │   └── index.html  # unwatched
+# ├── docs
+# │   ├── firecrawl_mcp_server.md  # unwatched
+# │   └── questionnaire_steps.md  # unwatched
+# ├── eslint.config.js  # unwatched
+# ├── hello.py
+# ├── index.html  # unwatched
+# ├── package-lock.json  # unwatched
+# ├── package.json  # unwatched
+# ├── postcss.config.cjs  # unwatched
+# ├── pyproject.toml  # unwatched
+# ├── setup.mjs  # unwatched
+# ├── specs
+# │   ├── agent_workflow.md  # unwatched
+# │   ├── architecture.md  # unwatched
+# │   └── mvp_spec.md  # unwatched
+# ├── src
+# │   ├── App.tsx  # unwatched
+# │   ├── QuestionnaireList.tsx  # unwatched
+# │   ├── QuestionnaireWizard.tsx  # unwatched
+# │   ├── SignInForm.tsx  # unwatched
+# │   ├── SignOutButton.tsx  # unwatched
+# │   ├── components
+# │   │   ├── theme-provider.tsx  # unwatched
+# │   │   └── ui
+# │   │       ├── accordion.tsx  # unwatched
+# │   │       ├── alert-dialog.tsx  # unwatched
+# │   │       ├── alert.tsx  # unwatched
+# │   │       ├── aspect-ratio.tsx  # unwatched
+# │   │       ├── avatar.tsx  # unwatched
+# │   │       ├── badge.tsx  # unwatched
+# │   │       ├── breadcrumb.tsx  # unwatched
+# │   │       ├── button.tsx  # unwatched
+# │   │       ├── calendar.tsx  # unwatched
+# │   │       ├── card.tsx  # unwatched
+# │   │       ├── carousel.tsx  # unwatched
+# │   │       ├── chart.tsx  # unwatched
+# │   │       ├── checkbox.tsx  # unwatched
+# │   │       ├── collapsible.tsx  # unwatched
+# │   │       ├── command.tsx  # unwatched
+# │   │       ├── context-menu.tsx  # unwatched
+# │   │       ├── dialog.tsx  # unwatched
+# │   │       ├── drawer.tsx  # unwatched
+# │   │       ├── dropdown-menu.tsx  # unwatched
+# │   │       ├── form.tsx  # unwatched
+# │   │       ├── hover-card.tsx  # unwatched
+# │   │       ├── input-otp.tsx  # unwatched
+# │   │       ├── input.tsx  # unwatched
+# │   │       ├── label.tsx  # unwatched
+# │   │       ├── menubar.tsx  # unwatched
+# │   │       ├── mode-toggle.tsx  # unwatched
+# │   │       ├── navigation-menu.tsx  # unwatched
+# │   │       ├── pagination.tsx  # unwatched
+# │   │       ├── popover.tsx  # unwatched
+# │   │       ├── progress.tsx  # unwatched
+# │   │       ├── radio-group.tsx  # unwatched
+# │   │       ├── resizable.tsx  # unwatched
+# │   │       ├── scroll-area.tsx  # unwatched
+# │   │       ├── select.tsx  # unwatched
+# │   │       ├── separator.tsx  # unwatched
+# │   │       ├── sheet.tsx  # unwatched
+# │   │       ├── sidebar.tsx  # unwatched
+# │   │       ├── skeleton.tsx  # unwatched
+# │   │       ├── slider.tsx  # unwatched
+# │   │       ├── sonner.tsx  # unwatched
+# │   │       ├── switch.tsx  # unwatched
+# │   │       ├── table.tsx  # unwatched
+# │   │       ├── tabs.tsx  # unwatched
+# │   │       ├── textarea.tsx  # unwatched
+# │   │       ├── toggle-group.tsx  # unwatched
+# │   │       ├── toggle.tsx  # unwatched
+# │   │       └── tooltip.tsx  # unwatched
+# │   ├── hooks
+# │   │   └── use-mobile.tsx  # unwatched
+# │   ├── index.css  # unwatched
+# │   ├── lib
+# │   │   └── utils.ts  # unwatched
+# │   ├── main.tsx  # unwatched
+# │   └── vite-env.d.ts  # unwatched
+# ├── tailwind.config.js  # unwatched
+# ├── tests
+# │   ├── QuestionnaireList.test.tsx  # unwatched
+# │   └── setup.ts  # unwatched
+# ├── tsconfig.app.json  # unwatched
+# ├── tsconfig.json  # unwatched
+# ├── tsconfig.node.json  # unwatched
+# ├── uv.lock  # unwatched
+# ├── vite.config.ts  # unwatched
+# ├── vitest.config.ts  # unwatched
+# └── watcher.py  # unwatched
+# 
+# === WATCHER HEADER END ===
 # .cursorrules
 # PreFlight Intake – coding & style rules
 #
@@ -772,4 +906,3 @@ export default function App() {
   return <div>Hello World</div>;
 }
 ```
-

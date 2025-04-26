@@ -1,0 +1,27 @@
+# List regex patterns for files/paths to exclude (one per line)
+# Lines starting with # are ignored
+# Example patterns:
+secret/.*      # Excludes all files in 'secret' directory
+.*\.log$       # Excludes all .log files
+.*secret.*     # Excludes any file with 'secret' in the path
+
+# Virtual-env & caches
+.venv
+__pycache__            # Python byte-code
+.pytest_cache
+.mypy_cache
+coverage/
+
+# Build / dist artefacts (if you add packaging later)
+build/.*
+dist/.*
+out/.*
+
+# Version-control internals
+.git
+
+# Large dependency dirs (not present now but future-proof)
+node_modules
+
+# Project-generated reports & data
+

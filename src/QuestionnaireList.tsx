@@ -44,11 +44,6 @@ export default function QuestionnaireList({ onStartNew }: QuestionnaireListProps
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Questionnaires</h2>
-        {!hasInProgress && (
-          <Button onClick={onStartNew}>
-            Start New Questionnaire
-          </Button>
-        )}
       </div>
 
       {completedQuestionnaires.length === 0 ? (
