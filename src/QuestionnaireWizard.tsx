@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Slider } from "@/components/ui/slider";
 
 interface QuestionnaireWizardProps {
   onComplete?: () => void;
@@ -182,6 +183,42 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+            )}
+
+            {currentQuestion.type === "slider" && (
+              <FormField
+                control={form.control}
+                name={fieldName}
+                defaultValue={parseInt(currentQuestion.options?.[0] || "0")}
+                render={({ field }) => {
+                  // Extract min, max, and step from options
+                  const min = parseInt(currentQuestion.options?.[0] || "0");
+                  const max = parseInt(currentQuestion.options?.[1] || "100");
+                  const step = parseInt(currentQuestion.options?.[2] || "1");
+                  
+                  return (
+                    <FormItem>
+                      <FormControl>
+                        <div className="space-y-4">
+                          <Slider
+                            min={min}
+                            max={max}
+                            step={step}
+                            defaultValue={[field.value || min]}
+                            onValueChange={(values) => field.onChange(values[0])}
+                          />
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">£{min}k</span>
+                            <span className="font-medium">Selected: £{field.value || min}k</span>
+                            <span className="text-muted-foreground">£{max}k</span>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             )}
 
