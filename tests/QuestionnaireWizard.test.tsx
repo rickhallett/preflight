@@ -124,6 +124,23 @@ const mockSteps = [
     prompt: 'Estimate the annual budget you could justify for this solution (£0k - £200k).',
     type: 'slider',
     options: ['0', '200', '10'],
+  },
+  {
+    _id: 'step9_id',
+    prdId: 'step-09-decision-roles',
+    index: 8,
+    title: 'Decision-Making Roles',
+    prompt: 'Who signs off on new clinical software purchases?',
+    type: 'radio',
+    options: [
+      'CMO (Chief Medical Officer)',
+      'CIO (Chief Information Officer)',
+      'Practice Owner / Lead Physician',
+      'Department Head',
+      'Procurement Committee',
+      'IT Department Lead',
+      'Other'
+    ],
   }
 ];
 
@@ -743,6 +760,86 @@ describe('QuestionnaireWizard', () => {
       expect(saveAnswer).toHaveBeenCalled();
       expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
         value: 100,
+        skipped: false
+      }));
+    });
+  });
+
+  // Add a test for decision roles radio inputs
+  test('should render and interact with decision roles radio inputs', async () => {
+    render(<QuestionnaireWizard />);
+    
+    // Navigate through 8 steps to reach the 9th step (decision roles)
+    const nextButton = screen.getByRole('button', { name: /next/i });
+    
+    // Submit all previous steps
+    for (let i = 0; i < 8; i++) {
+      // For step 1 (text input)
+      if (i === 0) {
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step answer' } });
+      }
+      // For step 2 (select input)
+      else if (i === 1) {
+        const selectTrigger = screen.getByRole('combobox');
+        fireEvent.click(selectTrigger);
+        await waitFor(() => {
+          fireEvent.click(screen.getByRole('option', { name: mockSteps[1].options?.[0] || '' }));
+        });
+      }
+      // For steps 3-4 and 7 (multiselect inputs), steps 5-6 (radio), step 8 (slider)
+      else {
+        if (i === 2 || i === 3 || i === 6) {
+          const checkboxes = screen.getAllByRole('checkbox');
+          fireEvent.click(checkboxes[0]);
+        } else if (i === 4 || i === 5) {
+          const radioButtons = screen.getAllByRole('radio');
+          fireEvent.click(radioButtons[0]);
+        } else if (i === 7) {
+          const slider = screen.getByRole('slider');
+          fireEvent.change(slider, { target: { value: 100 } });
+        }
+      }
+      
+      // Click Next to proceed to next step
+      fireEvent.click(nextButton);
+      
+      // Wait for the next step to appear
+      await waitFor(() => {
+        expect(screen.getByText(mockSteps[i + 1].prompt)).toBeInTheDocument();
+      });
+    }
+    
+    // Now we should be on the 9th step (decision roles)
+    // Verify radio buttons rendering
+    await waitFor(() => {
+      expect(screen.getByText(mockSteps[8].prompt)).toBeInTheDocument();
+      
+      // Check all options are rendered
+      mockSteps[8].options?.forEach(option => {
+        expect(screen.getByText(option)).toBeInTheDocument();
+      });
+      
+      // Check the radio buttons are rendered
+      const radioButtons = screen.getAllByRole('radio');
+      expect(radioButtons.length).toBe(mockSteps[8].options?.length || 0);
+    });
+    
+    // Select "CIO (Chief Information Officer)" option
+    const radioButtons = screen.getAllByRole('radio');
+    fireEvent.click(radioButtons[1]); // Select CIO option
+    
+    // Verify the radio value is selected
+    expect(radioButtons[1]).toBeChecked();
+    
+    // Submit with radio selection
+    fireEvent.click(screen.getByRole('button', { name: /finish/i }));
+    
+    // Verify the saveAnswer call with the selected role
+    await waitFor(() => {
+      const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
+      expect(saveAnswer).toHaveBeenCalled();
+      expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
+        value: "CIO (Chief Information Officer)",
         skipped: false
       }));
     });
