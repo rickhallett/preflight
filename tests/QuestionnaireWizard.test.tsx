@@ -159,6 +159,23 @@ const mockSteps = [
       'Technologically underserved (low digital literacy/access)',
       'Other significant demographic factors'
     ],
+  },
+  {
+    _id: 'step11_id',
+    prdId: 'step-11-monitoring-owner',
+    index: 10,
+    title: 'Ongoing Monitoring Owner',
+    prompt: 'Who (role) will own ongoing accuracy / bias monitoring after go-live?',
+    type: 'radio',
+    options: [
+      'Clinical Lead / Champion',
+      'Dedicated Data Scientist / Analyst',
+      'IT Department',
+      'Quality Improvement Team',
+      'External Vendor Support',
+      'Not yet determined',
+      'Other'
+    ],
   }
 ];
 
