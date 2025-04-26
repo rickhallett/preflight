@@ -191,6 +191,22 @@ const mockSteps = [
       'Within 1 week',
       'Monitored quarterly/annually'
     ],
+  },
+  {
+    _id: 'step13_id',
+    prdId: 'step-13-ai-responsibility',
+    index: 12,
+    title: 'AI Responsibility',
+    prompt: 'If an AI suggestion is wrong, who should be held responsible?',
+    type: 'radio',
+    options: [
+      'The clinician who acted on the suggestion',
+      'The AI vendor',
+      'The hospital/organization',
+      'Shared responsibility',
+      'Depends on the situation',
+      'Other (Specify if possible)'
+    ],
   }
 ];
 
