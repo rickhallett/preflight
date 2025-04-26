@@ -176,6 +176,21 @@ const mockSteps = [
       'Not yet determined',
       'Other'
     ],
+  },
+  {
+    _id: 'step12_id',
+    prdId: 'step-12-alerting-speed',
+    index: 11,
+    title: 'Alerting Speed',
+    prompt: 'How quickly must the team be alerted if AI performance (e.g., AUROC) drops by >5%?',
+    type: 'radio',
+    options: [
+      'Immediately (Real-time alert)',
+      'Within 1 hour',
+      'Within 24 hours',
+      'Within 1 week',
+      'Monitored quarterly/annually'
+    ],
   }
 ];
 
