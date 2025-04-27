@@ -3,7 +3,7 @@ id: architecture
 title: PreFlight Intake — Project Architecture
 over: 0.1
 updatePolicy: agent-pre-commit
-lastUpdated: "2024-08-20T20:50:45Z" # Updated timestamp
+lastUpdated: "2024-08-20T20:55:18Z" # Updated timestamp
 format:
   machine: "yaml-front-matter + fenced JSON blocks"
   human: markdown prose
