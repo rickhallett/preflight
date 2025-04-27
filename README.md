@@ -1,29 +1,142 @@
-# Initial Setup
-  
-This is a project built with [Chef](https://chef.convex.dev) using [Convex](https://convex.dev) as its backend.
-  
-This project is connected to the Convex deployment named [`ceaseless-bird-840`](https://dashboard.convex.dev/d/ceaseless-bird-840).
-  
-## Project structure
-  
-The frontend code is in the `app` directory and is built with [Vite](https://vitejs.dev/).
-  
-The backend code is in the `convex` directory.
-  
-`npm run dev` will start the frontend and backend servers.
+# PreFlight: Healthcare AI Readiness Assessment
 
-## App authentication
+PreFlight is a comprehensive questionnaire-based tool designed to help healthcare organizations assess their readiness for implementing AI solutions. By guiding stakeholders through a structured series of questions, PreFlight provides valuable insights and recommendations that pave the way for successful AI integration.
 
-Chef apps use [Convex Auth](https://auth.convex.dev/) with Anonymous auth for easy sign in. You may wish to change this before deploying your app.
+![PreFlight Logo](https://place-hold.it/800x200/teal/white?text=PreFlight&fontsize=60)
 
-## Developing and deploying your app
+## 🚀 Features
 
-Check out the [Convex docs](https://docs.convex.dev/) for more information on how to develop with Convex.
-* If you're new to Convex, the [Overview](https://docs.convex.dev/understanding/) is a good place to start
-* Check out the [Hosting and Deployment](https://docs.convex.dev/production/) docs for how to deploy your app
-* Read the [Best Practices](https://docs.convex.dev/understanding/best-practices/) guide for tips on how to improve you app further
+- **Interactive Questionnaire Wizard**: Guide users through a sequence of tailored questions
+- **Multi-Question Types**: Support for text, select, radio, checkboxes, sliders, and complex custom components
+- **Real-time Data Persistence**: Save answers as users progress
+- **Progress Tracking**: Visual indicators of completion status
+- **Results Dashboard**: Comprehensive view of completed assessments
+- **Responsive Design**: Fully functional on desktop and mobile devices
+- **Accessibility Compliant**: WCAG 2.2 AA standards support
 
-## PRD Consistency Tools
+## 🧰 Technology Stack
+
+### Frontend
+- **React 19**: Latest React features with full TypeScript support
+- **Vite**: Modern build tool for fast development and optimal bundling
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development
+- **shadcn/ui**: High-quality component library built on Radix UI
+- **React Hook Form + Zod**: Type-safe form validation
+
+### Backend
+- **Convex**: Real-time backend with automatic database synchronization
+- **TypeScript**: End-to-end type safety
+- **Bun**: Fast JavaScript runtime and package manager
+
+## 📋 Prerequisites
+
+- [Node.js](https://nodejs.org/) v18 or higher
+- [Bun](https://bun.sh/) for package management and running scripts
+- A [Convex](https://convex.dev) account for the backend
+
+## 🛠️ Development Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/preflight.git
+   cd preflight
+   ```
+
+2. **Install dependencies**
+   ```bash
+   bun install
+   ```
+
+3. **Set up environment variables**
+   Create a `.env.local` file in the project root with:
+   ```
+   # Development
+   CONVEX_DEPLOYMENT=your_dev_deployment_id
+   ```
+
+4. **Start the development servers**
+   ```bash
+   bun run dev
+   ```
+   This will start both the Convex backend and the Vite development server.
+
+5. **Open your browser**
+   The application will be available at [http://localhost:5173](http://localhost:5173)
+
+## 📊 Project Structure
+
+```
+preflight/
+├── convex/                 # Backend code & schema
+│   ├── _generated/         # Generated Convex types
+│   ├── schema.ts           # Database schema
+│   ├── questionnaires.ts   # Questionnaire-related functions
+│   ├── steps.ts            # Step definitions
+│   └── reminders.ts        # Notification system
+├── src/                    # Frontend code
+│   ├── components/         # Reusable UI components
+│   │   └── ui/             # shadcn/ui components
+│   ├── lib/                # Utilities and helpers
+│   ├── hooks/              # Custom React hooks
+│   ├── App.tsx             # Main application component
+│   ├── QuestionnaireWizard.tsx # Questionnaire interface
+│   └── QuestionnaireList.tsx   # List of questionnaires
+├── specs/                  # Product specifications
+│   └── prds/               # Product Requirement Documents
+├── tests/                  # Test files
+├── scripts/                # Utility scripts
+├── docs/                   # Documentation
+└── public/                 # Static assets
+```
+
+## 📝 Questionnaire Structure
+
+Each questionnaire consists of a series of steps, defined in the `steps` table in Convex. Steps can be of various types:
+
+- **text**: Free-form text input
+- **select**: Single-selection dropdown
+- **radio**: Single-selection radio buttons
+- **slider**: Numeric value selection on a range
+- **range_slider_with_labels**: Custom slider with labeled intervals
+- **multiselect**: Multiple checkbox selections
+- **multiselect_with_slider**: Combines checkboxes with a rating slider
+- **dual_slider**: Two interconnected sliders
+- **matrix**: Grid of options for selection
+- **ranked_choice**: Drag-and-drop ranking interface
+- **conditional**: Questions that adapt based on previous answers
+- **visual_selector**: Image-based selection interface
+- **hierarchical_select**: Nested selection interface
+
+## 🚢 Deployment
+
+1. **Set up production deployment in Convex**
+   ```bash
+   npx convex deploy
+   ```
+
+2. **Build the frontend**
+   ```bash
+   bun run build
+   ```
+
+3. **Deploy the frontend**
+   The static build output in the `dist` directory can be deployed to any hosting service like Vercel, Netlify, or GitHub Pages.
+
+## 🧪 Testing
+
+PreFlight uses Vitest and React Testing Library for testing components and functionality.
+
+Run tests with:
+```bash
+bun test
+```
+
+Run tests with coverage:
+```bash
+bun test:coverage
+```
+
+## 🧩 PRD Consistency Tools
 
 The project includes tools to ensure consistency between PRD specifications and their implementations:
 
@@ -45,23 +158,15 @@ To automatically fix inconsistencies found by the audit:
 bun run fix:prd
 ```
 
-### Validation During Seeding
+## 🔐 Authentication
 
-The step seeding process now includes validation to prevent inconsistencies between PRD specifications and their implementations. When running the seed script, it will validate each PRD and warn about potential inconsistencies:
+PreFlight uses Convex Auth for authentication. The current implementation uses anonymous authentication for development, but supports:
 
-```bash
-bun run scripts/seed_steps_from_prds.mjs
-```
+- Email/Password
+- OAuth (Google, GitHub)
+- JWT integration with existing auth systems
 
-### Automated Testing
-
-Run the automated consistency test (useful for CI/CD):
-
-```bash
-bun run scripts/automated_testing/test_prd_consistency.mjs
-```
-
-## Input Data Validation Framework
+## 📊 Data Validation
 
 The project includes a validation framework that allows you to specify validation rules for each step in the questionnaire. These rules are used both on the client and server to ensure data integrity.
 
@@ -71,57 +176,27 @@ You can specify validation rules in the PRD files using the following format:
 
 ```yaml
 validation:
-  required: true  # Whether the field is required
-  minLength: 10   # Minimum text length (for text inputs)
-  maxLength: 500  # Maximum text length
-  minValue: 0     # Minimum numeric value
-  maxValue: 100   # Maximum numeric value
+  required: true          # Whether the field is required
+  minLength: 10           # Minimum text length (for text inputs)
+  maxLength: 500          # Maximum text length
+  minValue: 0             # Minimum numeric value
+  maxValue: 100           # Maximum numeric value
   pattern: "^[A-Za-z0-9]+$"  # Regex pattern for validation
-  customValidation: "isValidEmail"  # Reference to a custom validation function
-  errorMessage: "Please enter a valid email address"  # Custom error message
+  errorMessage: "Please enter a valid value"  # Custom error message
 ```
 
-### Client-Side Validation
+## 🤝 Contributing
 
-The validation framework uses Zod schemas to validate form inputs on the client side. The validation rules are converted to Zod schemas dynamically based on the question type.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature/my-new-feature`
+5. Submit a pull request
 
-### Server-Side Validation
+## 📜 License
 
-All form inputs are also validated on the server side to ensure data integrity, even if the client-side validation is bypassed.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-### Custom Validation Functions
+## 📞 Support
 
-The validation framework supports custom validation functions that can be referenced by name. Currently supported functions include:
-
-- `isValidEmail`: Validates email addresses
-- `isValidURL`: Validates URLs
-- `isNumericOnly`: Validates that a string contains only numbers
-- `isAlphaOnly`: Validates that a string contains only letters
-- `isAlphanumericOnly`: Validates that a string contains only letters and numbers
-- `noSpecialChars`: Validates that a string contains only letters, numbers, and spaces
-
-## Questionnaire Results View
-
-The application includes a detailed results view for completed questionnaires that provides:
-
-1. **Detailed View**: See all your answers in a structured format with rich formatting based on question types
-2. **Summary Dashboard**: Visualize your responses with charts and graphs organized by category
-3. **Recommendations**: Get automated recommendations based on your responses
-4. **Export Options**: Export your questionnaire results in CSV or JSON formats
-5. **Sharing**: Share results via email with colleagues
-
-### Using the Results View
-
-- Complete a questionnaire to access its results
-- Click "View Details" on any completed questionnaire in the list
-- Switch between "Detailed View" and "Summary Dashboard" using the tabs
-- Use the export buttons to download your results in various formats
-
-### Data Visualization
-
-The Summary Dashboard uses various chart types to visualize your responses:
-
-- **Radar Chart**: Overall assessment across categories
-- **Bar Charts**: Comparing values across different questions
-- **Pie Charts**: Distribution of values within a category
-- **Line Charts**: Progression or trends across related questions
+For support or questions, please contact [your-email@example.com](mailto:your-email@example.com) or open an issue on GitHub.

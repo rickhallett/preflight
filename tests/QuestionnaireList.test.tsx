@@ -1,70 +1,86 @@
-import React from 'react'; // Add React import for JSX
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import QuestionnaireList from '../src/QuestionnaireList'; // Adjust path if needed
-import { Id } from '../convex/_generated/dataModel'; // Adjust path if needed
-import { api } from '../convex/_generated/api'; // Import api for mutation type
-import type { ConvexReactClient, ReactMutation } from 'convex/react';
+/**
+ * @vitest-environment jsdom
+ */
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { ConvexProvider } from "convex/react";
+import { ConvexReactClient } from "convex/react";
+import QuestionnaireList from '../src/QuestionnaireList';
 
-// Mock Convex hooks
-vi.mock('convex/react', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('convex/react')>();
+// Mock the Convex functions
+const mockUseQuery = vi.fn();
+
+vi.mock('convex/react', async () => {
+  const actual = await vi.importActual('convex/react');
   return {
     ...actual,
-    useQuery: vi.fn(),
-    useMutation: vi.fn(),
+    useMutation: () => vi.fn(),
+    useQuery: mockUseQuery,
+    ConvexProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    ConvexReactClient: vi.fn(),
   };
 });
 
-// Helper to type the mocked hooks
-// Let type inference work for useQuery or adjust if specific type is known
-const mockedUseQuery = vi.mocked((await import('convex/react')).useQuery);
-// Use the specific API function type for useMutation
-const mockedUseMutation = vi.mocked((await import('convex/react')).useMutation<typeof api.questionnaires.deleteQuestionnaire>);
-
-// Define a more complete mock for the mutation
-const mockDeleteMutation = vi.fn() as unknown as ReactMutation<typeof api.questionnaires.deleteQuestionnaire>;
-// Add the missing property
-mockDeleteMutation.withOptimisticUpdate = vi.fn().mockReturnThis();
-
-
 describe('QuestionnaireList', () => {
-  it('should NOT render a "Start New Questionnaire" button', () => {
-    // Arrange: Mock hooks to return an empty list and the improved mutation mock
-    mockedUseQuery.mockReturnValue([]); // No questionnaires
-    mockedUseMutation.mockReturnValue(mockDeleteMutation);
+  beforeEach(() => {
+    vi.clearAllMocks();
 
-    // Act: Render the component
-    render(<QuestionnaireList onStartNew={vi.fn()} />);
-
-    // Assert: Check that the button is NOT present
-    const startButton = screen.queryByRole('button', { name: /start new questionnaire/i });
-    expect(startButton).toBeNull();
+    // Default mock implementation
+    mockUseQuery.mockReturnValue([
+      {
+        _id: 'q1',
+        _creationTime: 1631234567890,
+        userId: 'user1',
+        completed: true,
+        completedAt: 1631234599999,
+      },
+      {
+        _id: 'q2',
+        _creationTime: 1631234567891,
+        userId: 'user1',
+        completed: true,
+        completedAt: 1631234600000,
+      }
+    ]);
   });
 
-  it('should render "Your Questionnaires" heading', () => {
-    // Arrange
-    mockedUseQuery.mockReturnValue([]);
-    mockedUseMutation.mockReturnValue(mockDeleteMutation);
+  test('renders a list of completed questionnaires', async () => {
+    const mockClient = {} as ConvexReactClient;
+    const mockOnStartNew = vi.fn();
 
-    // Act
-    render(<QuestionnaireList onStartNew={vi.fn()} />);
+    render(
+      <ConvexProvider client={mockClient}>
+        <QuestionnaireList onStartNew={mockOnStartNew} />
+      </ConvexProvider>
+    );
 
-    // Assert
-    expect(screen.getByRole('heading', { name: /your questionnaires/i })).toBeInTheDocument();
+    // Wait for the component to render
+    await waitFor(() => {
+      // Should display the title
+      expect(screen.getByText(/Completed Intakes/i)).toBeInTheDocument();
+
+      // Should show questionnaire dates from the mock data
+      const dateElements = screen.getAllByText(/completed on/i);
+      expect(dateElements.length).toBe(2);
+    });
   });
 
-  it('should show message when no questionnaires are completed', () => {
-    // Arrange
-    mockedUseQuery.mockReturnValue([]); // No questionnaires at all
-    mockedUseMutation.mockReturnValue(mockDeleteMutation);
+  test('displays message when no questionnaires exist', async () => {
+    // Override the mock to return an empty array
+    mockUseQuery.mockReturnValueOnce([]);
+    const mockClient = {} as ConvexReactClient;
+    const mockOnStartNew = vi.fn();
 
-    // Act
-    render(<QuestionnaireList onStartNew={vi.fn()} />);
+    render(
+      <ConvexProvider client={mockClient}>
+        <QuestionnaireList onStartNew={mockOnStartNew} />
+      </ConvexProvider>
+    );
 
-    // Assert
-    expect(screen.getByText(/you haven't completed any questionnaires yet./i)).toBeInTheDocument();
+    // Wait for the component to render
+    await waitFor(() => {
+      expect(screen.getByText(/no completed intakes/i)).toBeInTheDocument();
+    });
   });
-
-  // Add more tests as needed for displaying completed items, delete functionality etc.
 }); 

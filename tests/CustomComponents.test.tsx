@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { RangeSliderWithLabels } from '../src/components/ui/range-slider-with-labels';
 import { VisualSelector } from '../src/components/ui/visual-selector';
@@ -29,9 +29,6 @@ describe('Custom UI Components', () => {
         />
       );
 
-      // Debug the rendered output
-      console.log('Container HTML:', container.innerHTML);
-
       // Check all labels are in the HTML
       const html = container.innerHTML;
       for (const label of labels) {
@@ -52,16 +49,117 @@ describe('Custom UI Components', () => {
         />
       );
 
-      // Debug the rendered output
-      console.log('Container HTML:', container.innerHTML);
-
-      // Find the slider by its ARIA attribute
-      const slider = container.querySelector('[aria-valuenow="50"]');
+      // Find the slider element
+      const slider = container.querySelector('[role="slider"]');
       expect(slider).not.toBeNull();
 
-      // Test value changes by simulating a change event
-      // Use a direct attribute check rather than fireEvent since it's complex to simulate
+      // Check default value is set
       expect(slider?.getAttribute('aria-valuenow')).toBe('50');
+
+      // Simulate a direct value change by finding the Slider component and
+      // calling its onValueChange prop directly
+      const sliderComponent = container.querySelector('[data-orientation="horizontal"]');
+      expect(sliderComponent).not.toBeNull();
+
+      // Use a direct approach to test the callback
+      // Find the event handler on the base element
+      if (sliderComponent) {
+        // Directly dispatch a custom event that the underlying component would use
+        const event = new Event('change', { bubbles: true });
+        Object.defineProperty(event, 'target', {
+          value: { value: [75] }
+        });
+        sliderComponent.dispatchEvent(event);
+
+        // Since we can't fully simulate the complex interaction with the Radix UI Slider,
+        // we can at least verify our component passes the value change callback correctly
+        // by testing the outer function props
+        expect(onValueChange).toHaveBeenCalled();
+      }
+    });
+
+    test('provides fallback for insufficient labels', () => {
+      // Capture console warnings
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+
+      const { container } = render(
+        <RangeSliderWithLabels
+          min={0}
+          max={100}
+          step={25}
+          labels={['Single Label']} // Insufficient labels
+          defaultValue={[25]}
+          onValueChange={() => { }}
+        />
+      );
+
+      // Check if warning was logged
+      expect(warnSpy).toHaveBeenCalledWith(
+        "RangeSliderWithLabels should have at least 2 labels"
+      );
+
+      // Check if fallback labels were used
+      const html = container.innerHTML;
+      expect(html).toContain('Single Label');
+
+      warnSpy.mockRestore();
+    });
+
+    test('handles empty labels array', () => {
+      // Capture console warnings
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+
+      const { container } = render(
+        <RangeSliderWithLabels
+          min={0}
+          max={100}
+          step={25}
+          labels={[]} // Empty labels
+          defaultValue={[25]}
+          onValueChange={() => { }}
+        />
+      );
+
+      // Check if warning was logged
+      expect(warnSpy).toHaveBeenCalledWith(
+        "RangeSliderWithLabels should have at least 2 labels"
+      );
+
+      // Check if fallback labels ("Min", "Max") were added
+      const html = container.innerHTML;
+      expect(html).toContain('Min');
+      expect(html).toContain('Max');
+
+      warnSpy.mockRestore();
+    });
+
+    test('distributes labels evenly when count differs from steps', () => {
+      const labels = ['Start', 'Middle', 'End']; // 3 labels
+      const { container } = render(
+        <RangeSliderWithLabels
+          min={0}
+          max={100}
+          step={25} // This would create 5 positions (0, 25, 50, 75, 100)
+          labels={labels}
+          defaultValue={[50]}
+          onValueChange={() => { }}
+        />
+      );
+
+      // Check all labels are in the HTML
+      const html = container.innerHTML;
+      for (const label of labels) {
+        expect(html).toContain(label);
+      }
+
+      // Check the positions
+      const labelElements = container.querySelectorAll('.text-muted-foreground');
+      expect(labelElements.length).toBe(3);
+
+      // Check "Start" is at 0%, "Middle" at 50% and "End" at 100%
+      expect((labelElements[0] as HTMLElement).style.left).toBe('0%');
+      expect((labelElements[1] as HTMLElement).style.left).toBe('50%');
+      expect((labelElements[2] as HTMLElement).style.left).toBe('100%');
     });
   });
 
@@ -74,9 +172,6 @@ describe('Custom UI Components', () => {
 
     test('renders options with images and labels', () => {
       const { container } = render(<VisualSelector options={options} />);
-
-      // Debug the rendered output
-      console.log('Container HTML:', container.innerHTML);
 
       // Check for option labels in the HTML
       const html = container.innerHTML;
@@ -92,9 +187,6 @@ describe('Custom UI Components', () => {
     test('handles selection in single mode', () => {
       const onChange = vi.fn();
       const { container } = render(<VisualSelector options={options} onChange={onChange} />);
-
-      // Debug the rendered output
-      console.log('Selector HTML:', container.innerHTML);
 
       // Based on the HTML structure, find the spans containing "Heart"
       const spans = container.querySelectorAll('span');
@@ -114,11 +206,32 @@ describe('Custom UI Components', () => {
       }
     });
 
-    test.skip('handles multiple selection', () => {
+    test('handles multiple selection', () => {
       const onChange = vi.fn();
       const { container } = render(<VisualSelector options={options} multiple={true} onChange={onChange} />);
 
-      // Similar approach would be needed here, but skipping for now
+      // Find spans for Heart and Brain
+      const spans = container.querySelectorAll('span');
+      const heartSpan = Array.from(spans).find(span => span.textContent === 'Heart');
+      const brainSpan = Array.from(spans).find(span => span.textContent === 'Brain');
+
+      // First click Heart option
+      if (heartSpan) {
+        const heartDiv = heartSpan.closest('.flex');
+        if (heartDiv) {
+          fireEvent.click(heartDiv);
+          expect(onChange).toHaveBeenCalledWith(['heart']);
+
+          // Then click Brain option
+          if (brainSpan) {
+            const brainDiv = brainSpan.closest('.flex');
+            if (brainDiv) {
+              fireEvent.click(brainDiv);
+              expect(onChange).toHaveBeenCalledWith(['heart', 'brain']);
+            }
+          }
+        }
+      }
     });
   });
 
@@ -128,9 +241,6 @@ describe('Custom UI Components', () => {
 
     test('renders grid with rows and columns', () => {
       const { container } = render(<CondensedCheckboxGrid rows={rows} columns={columns} />);
-
-      // Debug output
-      console.log('Grid HTML:', container.innerHTML);
 
       // Check for rows and columns in the HTML
       const html = container.innerHTML;
@@ -188,9 +298,6 @@ describe('Custom UI Components', () => {
     test('renders select button with placeholder', () => {
       const { container } = render(<HierarchicalSelect options={options} placeholder="Select specialty..." />);
 
-      // Debug output
-      console.log('Select HTML:', container.innerHTML);
-
       // Find the button or element that would have the placeholder text
       const html = container.innerHTML;
       expect(html).toContain('Select specialty...');
@@ -203,9 +310,6 @@ describe('Custom UI Components', () => {
           value="general_cardiology"
         />
       );
-
-      // Debug output
-      console.log('Selected HTML:', container.innerHTML);
 
       // Check if the full path is shown in the HTML
       const html = container.innerHTML;
