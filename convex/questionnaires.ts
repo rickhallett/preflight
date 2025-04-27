@@ -40,7 +40,12 @@ export const saveAnswer = mutation({
       v.object({
         dataTypes: v.array(v.string()),
         completeness: v.number(),
-      })
+      }),
+      v.object({
+        min: v.number(),
+        max: v.number(),
+      }),
+      v.record(v.string(), v.any())
     ),
     skipped: v.boolean(),
   },

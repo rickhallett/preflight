@@ -28,6 +28,11 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+// Import complex question components
+import { DualSlider } from "@/components/ui/dual-slider";
+import { MatrixQuestion } from "@/components/ui/matrix-question";
+import { RankedChoice } from "@/components/ui/ranked-choice";
+import { ConditionalQuestion } from "@/components/ui/conditional-question";
 
 interface QuestionnaireWizardProps {
   onComplete?: () => void;
@@ -62,15 +67,64 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
     let dataToSave: any = value;
     let isSkipped = !value || (Array.isArray(value) && value.length === 0);
 
-    if (currentQuestion.type === "multiselect_with_slider") {
-      const dataTypes = formData[`${fieldName}_dataTypes`] || [];
-      const completeness = formData[`${fieldName}_completeness`] || 0;
+    // Declare variables outside switch statement
+    let dataTypes: string[] = [];
+    let completeness = 0;
+    let min = 0;
+    let max = 0;
 
-      dataToSave = {
-        dataTypes,
-        completeness
-      };
-      isSkipped = (!dataTypes || dataTypes.length === 0) && !completeness;
+    // Handle complex question types
+    switch (currentQuestion.type) {
+      case "multiselect_with_slider":
+        dataTypes = formData[`${fieldName}_dataTypes`] || [];
+        completeness = formData[`${fieldName}_completeness`] || 0;
+        dataToSave = { dataTypes, completeness };
+        isSkipped = (!dataTypes || dataTypes.length === 0) && !completeness;
+        break;
+
+      case "dual_slider":
+        min = formData[`${fieldName}_min`] || 0;
+        max = formData[`${fieldName}_max`] || 0;
+        dataToSave = { min, max };
+        isSkipped = !min && !max;
+        break;
+
+      case "matrix":
+        // For matrix questions, gather all the cell values
+        dataToSave = {};
+        isSkipped = true; // Start assuming it's skipped
+
+        // Check all form fields that start with the fieldName
+        Object.keys(formData).forEach(key => {
+          if (key.startsWith(`${fieldName}_`) && formData[key]) {
+            dataToSave[key.replace(`${fieldName}_`, '')] = formData[key];
+            isSkipped = false; // At least one cell is filled
+          }
+        });
+        break;
+
+      case "ranked_choice":
+        // Already an array, just check if empty
+        isSkipped = !value || (Array.isArray(value) && value.length === 0);
+        break;
+
+      case "conditional":
+        // For conditional questions, gather component values
+        dataToSave = {};
+        isSkipped = true;
+
+        // Check all form fields that start with the fieldName
+        Object.keys(formData).forEach(key => {
+          if (key.startsWith(`${fieldName}_`) && formData[key]) {
+            dataToSave[key.replace(`${fieldName}_`, '')] = formData[key];
+            isSkipped = false; // At least one field is filled
+          }
+        });
+        break;
+
+      default:
+        // Use the default handling for basic question types
+        isSkipped = !value || (Array.isArray(value) && value.length === 0);
     }
 
     if (isSkipped && !confirm("Skip this question?")) {
@@ -130,6 +184,7 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
           <div className="bg-card rounded-lg p-6 shadow-sm border mb-6">
             <h3 className="text-xl font-semibold mb-4">{currentQuestion.prompt}</h3>
 
+            {/* Simple question types */}
             {currentQuestion.type === "text" && (
               <FormField
                 control={form.control}
@@ -298,6 +353,7 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
               />
             )}
 
+            {/* Complex question types */}
             {currentQuestion.type === "multiselect_with_slider" && (
               <div className="space-y-6">
                 <FormField
@@ -375,6 +431,23 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
                   }}
                 />
               </div>
+            )}
+
+            {/* New complex question types */}
+            {currentQuestion.type === "dual_slider" && (
+              <DualSlider fieldName={fieldName} question={currentQuestion} />
+            )}
+
+            {currentQuestion.type === "matrix" && (
+              <MatrixQuestion fieldName={fieldName} question={currentQuestion} />
+            )}
+
+            {currentQuestion.type === "ranked_choice" && (
+              <RankedChoice fieldName={fieldName} question={currentQuestion} />
+            )}
+
+            {currentQuestion.type === "conditional" && (
+              <ConditionalQuestion fieldName={fieldName} question={currentQuestion} />
             )}
           </div>
 

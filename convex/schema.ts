@@ -21,12 +21,28 @@ const applicationTables = {
       v.literal("radio"),
       v.literal("slider"),
       v.literal("number"),
-      v.literal("multiselect_with_slider")
+      v.literal("multiselect_with_slider"),
+      v.literal("dual_slider"),
+      v.literal("matrix"),
+      v.literal("ranked_choice"),
+      v.literal("conditional")
     ),
     prompt: v.string(),
     title: v.optional(v.string()),
     options: v.optional(v.array(v.string())),
     sliderOptions: v.optional(v.array(v.string())),
+    components: v.optional(v.array(
+      v.object({
+        id: v.string(),
+        type: v.string(),
+        label: v.string(),
+        options: v.optional(v.array(v.string())),
+        sliderOptions: v.optional(v.array(v.string())),
+        required: v.optional(v.boolean()),
+        condition: v.optional(v.any()),
+        valueFormat: v.optional(v.any())
+      })
+    )),
   })
     .index("by_index", ["index"])
     .index("by_prdId", ["prdId"]),
@@ -40,7 +56,12 @@ const applicationTables = {
       v.object({
         dataTypes: v.array(v.string()),
         completeness: v.number(),
-      })
+      }),
+      v.object({
+        min: v.number(),
+        max: v.number(),
+      }),
+      v.record(v.string(), v.any())
     ),
     skipped: v.boolean(),
   })
