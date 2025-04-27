@@ -99,3 +99,29 @@ The validation framework supports custom validation functions that can be refere
 - `isAlphaOnly`: Validates that a string contains only letters
 - `isAlphanumericOnly`: Validates that a string contains only letters and numbers
 - `noSpecialChars`: Validates that a string contains only letters, numbers, and spaces
+
+## Questionnaire Results View
+
+The application includes a detailed results view for completed questionnaires that provides:
+
+1. **Detailed View**: See all your answers in a structured format with rich formatting based on question types
+2. **Summary Dashboard**: Visualize your responses with charts and graphs organized by category
+3. **Recommendations**: Get automated recommendations based on your responses
+4. **Export Options**: Export your questionnaire results in CSV or JSON formats
+5. **Sharing**: Share results via email with colleagues
+
+### Using the Results View
+
+- Complete a questionnaire to access its results
+- Click "View Details" on any completed questionnaire in the list
+- Switch between "Detailed View" and "Summary Dashboard" using the tabs
+- Use the export buttons to download your results in various formats
+
+### Data Visualization
+
+The Summary Dashboard uses various chart types to visualize your responses:
+
+- **Radar Chart**: Overall assessment across categories
+- **Bar Charts**: Comparing values across different questions
+- **Pie Charts**: Distribution of values within a category
+- **Line Charts**: Progression or trends across related questions

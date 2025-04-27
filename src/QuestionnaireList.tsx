@@ -15,7 +15,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
+import { Trash2, Eye } from "lucide-react";
+import { QuestionnaireDetail } from "./QuestionnaireDetail";
 
 interface QuestionnaireListProps {
   onStartNew: () => void;
@@ -24,6 +25,7 @@ interface QuestionnaireListProps {
 export default function QuestionnaireList({ onStartNew }: QuestionnaireListProps) {
   const questionnaires = useQuery(api.questionnaires.listUserQuestionnaires);
   const deleteQuestionnaire = useMutation(api.questionnaires.deleteQuestionnaire);
+  const [selectedQuestionnaireId, setSelectedQuestionnaireId] = useState<Id<"questionnaires"> | null>(null);
 
   if (!questionnaires) return null;
 
@@ -40,10 +42,26 @@ export default function QuestionnaireList({ onStartNew }: QuestionnaireListProps
     }
   };
 
+  const handleViewDetails = (questionnaireId: Id<"questionnaires">) => {
+    setSelectedQuestionnaireId(questionnaireId);
+  };
+
+  const handleBackToList = () => {
+    setSelectedQuestionnaireId(null);
+  };
+
+  // If a questionnaire is selected, show its details
+  if (selectedQuestionnaireId) {
+    return <QuestionnaireDetail questionnaireId={selectedQuestionnaireId} onBack={handleBackToList} />;
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Questionnaires</h2>
+        <Button onClick={onStartNew} disabled={hasInProgress}>
+          {hasInProgress ? "Continue Questionnaire" : "Start New Questionnaire"}
+        </Button>
       </div>
 
       {completedQuestionnaires.length === 0 ? (
@@ -67,6 +85,15 @@ export default function QuestionnaireList({ onStartNew }: QuestionnaireListProps
                   <span className="bg-green-100 text-green-800 text-sm px-2 py-1 rounded">
                     Completed
                   </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => handleViewDetails(questionnaire._id)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    View Details
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button

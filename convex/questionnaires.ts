@@ -66,8 +66,9 @@ const validateAnswer = async (
   }
 
   // Type-specific validations
+  let numValue;
   switch (step.type) {
-    case "text":
+    case "text": {
       // Check min/max length for strings
       if (typeof value === "string") {
         if (validation.minLength !== undefined && value.length < validation.minLength) {
@@ -98,11 +99,12 @@ const validateAnswer = async (
         }
       }
       break;
+    }
 
     case "number":
-    case "slider":
+    case "slider": {
       // Check min/max value for numbers
-      const numValue = Number(value);
+      numValue = Number(value);
       if (!isNaN(numValue)) {
         if (validation.minValue !== undefined && numValue < validation.minValue) {
           return {
@@ -118,8 +120,9 @@ const validateAnswer = async (
         }
       }
       break;
+    }
 
-    case "multiselect":
+    case "multiselect": {
       // Check min/max selections
       if (Array.isArray(value)) {
         if (validation.minLength !== undefined && value.length < validation.minLength) {
@@ -136,6 +139,7 @@ const validateAnswer = async (
         }
       }
       break;
+    }
 
     // Add validations for other question types as needed
   }
@@ -226,11 +230,14 @@ export const completeQuestionnaire = mutation({
       completedAt: Date.now(),
     });
 
-    // Schedule reminder after completion
+    // Note: Reminder functionality commented out to avoid error with missing reminders.sendFollowUp
+    // To enable, you'll need to implement the reminders table and functions
+    /*
     await ctx.scheduler.runAfter(1000 * 60 * 60 * 24 * 7, internal.reminders.sendFollowUp, {
       questionnaireId: args.questionnaireId,
       userId,
     });
+    */
 
     return questionnaire._id;
   },
@@ -299,5 +306,57 @@ export const listQuestionnaires = query({
       .collect();
 
     return questionnaires;
+  },
+});
+
+/**
+ * Fetches a complete questionnaire with all answers and step information
+ */
+export const getQuestionnaireWithDetails = query({
+  args: {
+    questionnaireId: v.id("questionnaires"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    // Get the questionnaire
+    const questionnaire = await ctx.db.get(args.questionnaireId);
+    if (!questionnaire) throw new Error("Questionnaire not found");
+    if (questionnaire.userId !== userId) throw new Error("Unauthorized");
+
+    // Get all answers for this questionnaire
+    const answers = await ctx.db
+      .query("answers")
+      .withIndex("by_questionnaire", (q) => q.eq("questionnaireId", args.questionnaireId))
+      .collect();
+
+    // Get all steps
+    const steps = await ctx.db.query("steps").order("asc").collect();
+
+    // Calculate completion statistics
+    const totalQuestions = steps.length;
+    const answeredQuestions = answers.filter(a => !a.skipped).length;
+    const skippedQuestions = answers.filter(a => a.skipped).length;
+    const completionRate = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
+
+    // Calculate time taken to complete
+    const startTime = questionnaire.startedAt;
+    const endTime = questionnaire.completedAt || Date.now();
+    const timeTakenMs = endTime - startTime;
+    const timeTakenMinutes = Math.floor(timeTakenMs / (1000 * 60));
+
+    return {
+      ...questionnaire,
+      answers,
+      steps,
+      statistics: {
+        totalQuestions,
+        answeredQuestions,
+        skippedQuestions,
+        completionRate,
+        timeTakenMinutes,
+      }
+    };
   },
 });
