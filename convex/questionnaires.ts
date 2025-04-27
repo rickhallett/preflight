@@ -33,7 +33,15 @@ export const saveAnswer = mutation({
   args: {
     questionnaireId: v.id("questionnaires"),
     stepId: v.id("steps"),
-    value: v.union(v.string(), v.array(v.string())),
+    value: v.union(
+      v.string(),
+      v.array(v.string()),
+      v.number(),
+      v.object({
+        dataTypes: v.array(v.string()),
+        completeness: v.number(),
+      })
+    ),
     skipped: v.boolean(),
   },
   handler: async (ctx, args) => {
@@ -92,7 +100,7 @@ export const deleteQuestionnaire = mutation({
       .query("answers")
       .withIndex("by_questionnaire", q => q.eq("questionnaireId", args.questionnaireId))
       .collect();
-    
+
     for (const answer of answers) {
       await ctx.db.delete(answer._id);
     }

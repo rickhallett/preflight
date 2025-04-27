@@ -57,9 +57,23 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
 
   const onSubmit = async (formData: z.infer<typeof formSchema>) => {
     const value = formData[fieldName];
-    const skipped = !value || (Array.isArray(value) && value.length === 0);
 
-    if (skipped && !confirm("Skip this question?")) {
+    // Handle compound question type (multiselect_with_slider)
+    let dataToSave: any = value;
+    let isSkipped = !value || (Array.isArray(value) && value.length === 0);
+
+    if (currentQuestion.type === "multiselect_with_slider") {
+      const dataTypes = formData[`${fieldName}_dataTypes`] || [];
+      const completeness = formData[`${fieldName}_completeness`] || 0;
+
+      dataToSave = {
+        dataTypes,
+        completeness
+      };
+      isSkipped = (!dataTypes || dataTypes.length === 0) && !completeness;
+    }
+
+    if (isSkipped && !confirm("Skip this question?")) {
       return;
     }
 
@@ -73,8 +87,8 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
       await saveAnswer({
         questionnaireId: qId,
         stepId: currentQuestion._id,
-        value: value ?? "",
-        skipped: skipped,
+        value: dataToSave,
+        skipped: isSkipped,
       });
 
       if (currentStepIndex < steps.length - 1) {
@@ -282,6 +296,85 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
                   </FormItem>
                 )}
               />
+            )}
+
+            {currentQuestion.type === "multiselect_with_slider" && (
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name={`${fieldName}_dataTypes`}
+                  render={() => (
+                    <FormItem>
+                      <div className="mb-4">
+                        <FormLabel>Select all data types you reliably capture:</FormLabel>
+                      </div>
+                      {currentQuestion.options?.map((option: string) => (
+                        <FormField
+                          key={option}
+                          control={form.control}
+                          name={`${fieldName}_dataTypes`}
+                          render={({ field }) => {
+                            const currentValues = Array.isArray(field.value) ? field.value : [];
+                            return (
+                              <FormItem key={option} className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={currentValues.includes(option)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...currentValues, option])
+                                        : field.onChange(currentValues.filter((v) => v !== option));
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  {option}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`${fieldName}_completeness`}
+                  defaultValue={parseInt(currentQuestion.sliderOptions?.[0] || "0")}
+                  render={({ field }) => {
+                    // Extract min, max, and step from sliderOptions
+                    const min = parseInt(currentQuestion.sliderOptions?.[0] || "0");
+                    const max = parseInt(currentQuestion.sliderOptions?.[1] || "100");
+                    const step = parseInt(currentQuestion.sliderOptions?.[2] || "1");
+
+                    return (
+                      <FormItem>
+                        <FormLabel>Rate overall data completeness (0-100):</FormLabel>
+                        <FormControl>
+                          <div className="space-y-4">
+                            <Slider
+                              min={min}
+                              max={max}
+                              step={step}
+                              defaultValue={[field.value || min]}
+                              onValueChange={(values) => field.onChange(values[0])}
+                            />
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">{min}%</span>
+                              <span className="font-medium">Selected: {field.value || min}%</span>
+                              <span className="text-muted-foreground">{max}%</span>
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+              </div>
             )}
           </div>
 

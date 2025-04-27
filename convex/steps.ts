@@ -104,9 +104,35 @@ export const list = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
 
-    return await ctx.db
+    const steps = await ctx.db
       .query("steps")
       .order("asc")
       .collect();
+
+    // Transform step-02 into a compound step if needed
+    return steps.map(step => {
+      if (step.prdId === "step-02-data-sources") {
+        // Set proper options for the multiselect part
+        if (!step.options || step.options.length === 0) {
+          return {
+            ...step,
+            type: "multiselect_with_slider",
+            options: [
+              "Structured clinical notes",
+              "ICD-10 / SNOMED codes",
+              "Lab results",
+              "Medication data",
+              "Vital signs data",
+              "Imaging reports (text)",
+              "Imaging data (DICOM)",
+              "Patient-reported outcomes",
+              "Genomic/family history data"
+            ],
+            sliderOptions: ["0", "100", "1"] // min, max, step
+          };
+        }
+      }
+      return step;
+    });
   },
 });

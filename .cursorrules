@@ -34,6 +34,7 @@
 # │   ├── auth.ts  # unwatched
 # │   ├── crons.ts  # unwatched
 # │   ├── http.ts  # unwatched
+# │   ├── migrations.ts  # unwatched
 # │   ├── questionnaires.ts  # unwatched
 # │   ├── reminders.ts  # unwatched
 # │   ├── schema.ts  # unwatched
@@ -52,6 +53,9 @@
 # ├── package.json  # unwatched
 # ├── postcss.config.cjs  # unwatched
 # ├── pyproject.toml  # unwatched
+# ├── scripts
+# │   ├── delete_all_steps.mjs  # unwatched
+# │   └── seed_steps_from_prds.mjs  # unwatched
 # ├── setup.mjs  # unwatched
 # ├── specs
 # │   ├── added_value_spec.md  # unwatched
@@ -162,6 +166,7 @@
 # ├── tailwind.config.js  # unwatched
 # ├── tests
 # │   ├── QuestionnaireList.test.tsx  # unwatched
+# │   ├── QuestionnaireWizard.test.tsx  # unwatched
 # │   └── setup.ts  # unwatched
 # ├── tsconfig.app.json  # unwatched
 # ├── tsconfig.json  # unwatched
