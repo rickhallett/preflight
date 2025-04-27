@@ -25,7 +25,11 @@ const applicationTables = {
       v.literal("dual_slider"),
       v.literal("matrix"),
       v.literal("ranked_choice"),
-      v.literal("conditional")
+      v.literal("conditional"),
+      v.literal("range_slider_with_labels"),
+      v.literal("visual_selector"),
+      v.literal("condensed_checkbox_grid"),
+      v.literal("hierarchical_select")
     ),
     prompt: v.string(),
     title: v.optional(v.string()),
@@ -43,6 +47,17 @@ const applicationTables = {
         valueFormat: v.optional(v.any())
       })
     )),
+    labels: v.optional(v.array(v.string())),
+    images: v.optional(v.array(
+      v.object({
+        value: v.string(),
+        image: v.string(),
+        label: v.string()
+      })
+    )),
+    rows: v.optional(v.array(v.string())),
+    columns: v.optional(v.array(v.string())),
+    hierarchicalOptions: v.optional(v.any()),
   })
     .index("by_index", ["index"])
     .index("by_prdId", ["prdId"]),

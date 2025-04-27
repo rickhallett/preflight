@@ -71,10 +71,27 @@ const stepDataValidator = v.object({
     v.literal("dual_slider"),
     v.literal("matrix"),
     v.literal("ranked_choice"),
-    v.literal("conditional")
+    v.literal("conditional"),
+    // Custom UI component types
+    v.literal("range_slider_with_labels"),
+    v.literal("visual_selector"),
+    v.literal("condensed_checkbox_grid"),
+    v.literal("hierarchical_select")
   ),
   options: v.optional(v.array(v.string())),
   sliderOptions: v.optional(v.array(v.string())),
+  // Added for custom components
+  labels: v.optional(v.array(v.string())),
+  images: v.optional(v.array(
+    v.object({
+      value: v.string(),
+      image: v.string(),
+      label: v.string()
+    })
+  )),
+  rows: v.optional(v.array(v.string())),
+  columns: v.optional(v.array(v.string())),
+  hierarchicalOptions: v.optional(v.any()),
 });
 
 export const addOrUpdateStep = internalMutation({
@@ -157,6 +174,16 @@ export const list = query({
         return {
           ...step,
           sliderOptions: ["0", "100", "5"] // 0% to 100% in steps of 5%
+        };
+      }
+      // Example of custom component enhancement (if needed)
+      else if (step.prdId === "prd-custom-ui-components") {
+        // This is just an example to demonstrate; customize based on actual needs
+        return {
+          ...step,
+          type: "range_slider_with_labels", // One of the custom types
+          sliderOptions: ["0", "100", "25"], // min, max, step values
+          labels: ["None", "Low", "Medium", "High", "Critical"] // Text labels
         };
       }
       return step;

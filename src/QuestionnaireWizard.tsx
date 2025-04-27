@@ -33,6 +33,11 @@ import { DualSlider } from "@/components/ui/dual-slider";
 import { MatrixQuestion } from "@/components/ui/matrix-question";
 import { RankedChoice } from "@/components/ui/ranked-choice";
 import { ConditionalQuestion } from "@/components/ui/conditional-question";
+// Import custom UI components
+import { RangeSliderWithLabels } from "@/components/ui/range-slider-with-labels";
+import { VisualSelector } from "@/components/ui/visual-selector";
+import { CondensedCheckboxGrid } from "@/components/ui/condensed-checkbox-grid";
+import { HierarchicalSelect } from "@/components/ui/hierarchical-select";
 
 interface QuestionnaireWizardProps {
   onComplete?: () => void;
@@ -120,6 +125,27 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
             isSkipped = false; // At least one field is filled
           }
         });
+        break;
+
+      // Handle custom UI component types
+      case "condensed_checkbox_grid":
+        // Grid values will be a record of row -> columns[]
+        isSkipped = !value || (typeof value === 'object' && Object.keys(value).length === 0);
+        break;
+
+      case "visual_selector":
+        // Value can be a string or string[] depending on multiple selection
+        isSkipped = !value || (Array.isArray(value) && value.length === 0);
+        break;
+
+      case "range_slider_with_labels":
+        // Value will be a number
+        isSkipped = value === undefined || value === null;
+        break;
+
+      case "hierarchical_select":
+        // Value will be a string
+        isSkipped = !value;
         break;
 
       default:
@@ -465,6 +491,115 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
 
             {currentQuestion.type === "conditional" && (
               <ConditionalQuestion fieldName={fieldName} question={currentQuestion} />
+            )}
+
+            {/* Custom UI Component Types */}
+            {currentQuestion.type === "range_slider_with_labels" && (
+              <FormField
+                control={form.control}
+                name={fieldName}
+                defaultValue={parseInt(currentQuestion.sliderOptions?.[0] || "0")}
+                render={({ field }) => {
+                  // Extract min, max, and step from sliderOptions
+                  const min = parseInt(currentQuestion.sliderOptions?.[0] || "0");
+                  const max = parseInt(currentQuestion.sliderOptions?.[1] || "100");
+                  const step = parseInt(currentQuestion.sliderOptions?.[2] || "25");
+                  const labels = currentQuestion.labels || ["Min", "Low", "Medium", "High", "Max"];
+
+                  return (
+                    <FormItem>
+                      <FormControl>
+                        <RangeSliderWithLabels
+                          min={min}
+                          max={max}
+                          step={step}
+                          labels={labels}
+                          defaultValue={[field.value || min]}
+                          onValueChange={(values) => field.onChange(values[0])}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+            )}
+
+            {currentQuestion.type === "visual_selector" && (
+              <FormField
+                control={form.control}
+                name={fieldName}
+                render={({ field }) => {
+                  // Use images from the question
+                  const options = currentQuestion.images || [];
+                  // Determine if multiple selection is allowed
+                  const multiple = currentQuestion.options?.includes("multiple") || false;
+
+                  return (
+                    <FormItem>
+                      <FormControl>
+                        <VisualSelector
+                          options={options}
+                          value={field.value}
+                          onChange={field.onChange}
+                          multiple={multiple}
+                          columns={3} // Default to 3 columns
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+            )}
+
+            {currentQuestion.type === "condensed_checkbox_grid" && (
+              <FormField
+                control={form.control}
+                name={fieldName}
+                render={({ field }) => {
+                  const rows = currentQuestion.rows || [];
+                  const columns = currentQuestion.columns || [];
+
+                  return (
+                    <FormItem>
+                      <FormControl>
+                        <CondensedCheckboxGrid
+                          rows={rows}
+                          columns={columns}
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+            )}
+
+            {currentQuestion.type === "hierarchical_select" && (
+              <FormField
+                control={form.control}
+                name={fieldName}
+                render={({ field }) => {
+                  const options = currentQuestion.hierarchicalOptions || [];
+
+                  return (
+                    <FormItem>
+                      <FormControl>
+                        <HierarchicalSelect
+                          options={options}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select an option..."
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
             )}
           </div>
 

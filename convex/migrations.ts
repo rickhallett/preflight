@@ -22,10 +22,27 @@ const stepDataValidator = v.object({
     v.literal("dual_slider"),
     v.literal("matrix"),
     v.literal("ranked_choice"),
-    v.literal("conditional")
+    v.literal("conditional"),
+    // Custom UI component types
+    v.literal("range_slider_with_labels"),
+    v.literal("visual_selector"),
+    v.literal("condensed_checkbox_grid"),
+    v.literal("hierarchical_select")
   ),
   options: v.optional(v.array(v.string())),
   sliderOptions: v.optional(v.array(v.string())),
+  // Added for custom components
+  labels: v.optional(v.array(v.string())),
+  images: v.optional(v.array(
+    v.object({
+      value: v.string(),
+      image: v.string(),
+      label: v.string()
+    })
+  )),
+  rows: v.optional(v.array(v.string())),
+  columns: v.optional(v.array(v.string())),
+  hierarchicalOptions: v.optional(v.any()),
 });
 
 // Action now takes Base64 encoded JSON string

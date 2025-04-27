@@ -17,7 +17,12 @@ const VALID_STEP_TYPES = [
   "dual_slider",
   "matrix",
   "ranked_choice",
-  "conditional"
+  "conditional",
+  // Custom UI component types
+  "range_slider_with_labels",
+  "visual_selector",
+  "condensed_checkbox_grid",
+  "hierarchical_select"
 ];
 
 async function listPrdFiles() {
@@ -106,6 +111,12 @@ async function seedSteps() {
       type: prdData.convex_step_type,
       options: prdData.options || [],
       sliderOptions: prdData.sliderOptions || [],
+      // Add support for custom component fields
+      labels: prdData.labels || [],
+      images: prdData.images || [],
+      rows: prdData.rows || [],
+      columns: prdData.columns || [],
+      hierarchicalOptions: prdData.hierarchicalOptions || null,
     };
 
     try {
