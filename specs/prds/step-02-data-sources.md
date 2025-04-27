@@ -8,7 +8,7 @@ options: [] # Needs specific data types
 form_field_name: availableDataTypes # Placeholder for multiselect
 # Needs another field for slider, e.g., dataCompletenessSlider
 convex_step_type: multiselect # Needs refinement for composite type
-convex_answer_validator: v.object({ dataTypes: v.array(v.string()), completeness: v.number() }) # Placeholder
+convex_answer_validator: { dataTypes: v.array(v.string()), completeness: v.number() } # Placeholder
 ui_component_suggestion: CheckboxGroup + Slider # Needs specific implementation
 acceptance_criteria:
   - UI renders the prompt correctly.

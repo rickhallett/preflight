@@ -106,13 +106,13 @@ const mockSteps = [
     prompt: 'Which of the following risks would prevent adoption?',
     type: 'multiselect',
     options: [
-      'Misdiagnosis potential', 
-      'Patient data leakage', 
-      'Algorithmic bias propagation', 
-      'Lack of result explainability', 
-      'Vendor lock-in', 
-      'High implementation cost', 
-      'Staff resistance', 
+      'Misdiagnosis potential',
+      'Patient data leakage',
+      'Algorithmic bias propagation',
+      'Lack of result explainability',
+      'Vendor lock-in',
+      'High implementation cost',
+      'Staff resistance',
       'Other (Specify if possible)'
     ],
   },
@@ -236,6 +236,23 @@ const mockSteps = [
       'Mobile application (if applicable)',
       'Hybrid model'
     ],
+  },
+  {
+    _id: 'step16_id',
+    prdId: 'step-16-training-preferences',
+    index: 15,
+    title: 'Training & Support Preferences',
+    prompt: 'What are your preferred methods for training and support? (Select all that apply)',
+    type: 'multiselect',
+    options: [
+      'Online documentation & knowledge base',
+      'Live online training sessions (webinars)',
+      'On-site training sessions',
+      'Train-the-trainer program',
+      'In-app tutorials & guides',
+      'Dedicated account manager / support contact',
+      'Community forum'
+    ],
   }
 ];
 
@@ -316,48 +333,48 @@ describe('QuestionnaireWizard', () => {
   // Tests for Back button functionality
   test('should enable back button after navigating to second step', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // First step - enter text and go to next
     const textarea = screen.getByRole('textbox');
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     fireEvent.change(textarea, { target: { value: 'Some bottleneck text' } });
     fireEvent.click(nextButton);
-    
+
     // Now we should be on the second step
     await waitFor(() => {
       expect(screen.getByText(mockSteps[1].prompt)).toBeInTheDocument();
     });
-    
+
     // Back button should be enabled
     const backButton = screen.getByRole('button', { name: /back/i });
     expect(backButton).toBeEnabled();
   });
-  
+
   test('should navigate to previous step when back button is clicked', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // First step - enter text and go to next
     const textarea = screen.getByRole('textbox');
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     fireEvent.change(textarea, { target: { value: 'Some bottleneck text' } });
     fireEvent.click(nextButton);
-    
+
     // Now we should be on the second step
     await waitFor(() => {
       expect(screen.getByText(mockSteps[1].prompt)).toBeInTheDocument();
     });
-    
+
     // Click back button
     const backButton = screen.getByRole('button', { name: /back/i });
     fireEvent.click(backButton);
-    
+
     // Should be back on first step
     await waitFor(() => {
       expect(screen.getByText(mockSteps[0].prompt)).toBeInTheDocument();
     });
-    
+
     // Back button should be disabled again
     expect(screen.getByRole('button', { name: /back/i })).toBeDisabled();
   });
@@ -367,19 +384,19 @@ describe('QuestionnaireWizard', () => {
     // Mock window.confirm to always return true (confirm skip)
     const originalConfirm = window.confirm;
     window.confirm = vi.fn(() => true);
-    
+
     try {
       render(<QuestionnaireWizard />);
-      
+
       // Don't enter any text, just click next (which should trigger a skip)
       const nextButton = screen.getByRole('button', { name: /next/i });
       fireEvent.click(nextButton);
-      
+
       // Check that window.confirm was called
       await waitFor(() => {
         expect(window.confirm).toHaveBeenCalledWith("Skip this question?");
       });
-      
+
       // Check saveAnswer was called with expected arguments
       await waitFor(() => {
         const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
@@ -388,7 +405,7 @@ describe('QuestionnaireWizard', () => {
           skipped: true
         }));
       });
-      
+
       // Should advance to next step
       expect(screen.getByText(mockSteps[1].prompt)).toBeInTheDocument();
     } finally {
@@ -399,41 +416,41 @@ describe('QuestionnaireWizard', () => {
   // Test for finishing the questionnaire on the last step
   test('should call completeQuestionnaire when submitting the last step', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // Navigate to the last step by submitting each step
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     // Submit first step
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step 1 answer' } });
     fireEvent.click(nextButton);
-    
+
     // Wait for second step to appear and submit it
     await waitFor(() => {
       expect(screen.getByText(mockSteps[1].prompt)).toBeInTheDocument();
     });
-    
+
     // Select an option for second step (select type)
     const selectTrigger = screen.getByRole('combobox');
     fireEvent.click(selectTrigger);
-    
+
     // Wait for dropdown to appear and select an option
     await waitFor(() => {
       const option = screen.getByRole('option', { name: 'EHR' });
       fireEvent.click(option);
     });
-    
+
     // Submit second step
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    
+
     // Wait for third step to appear and submit it
     await waitFor(() => {
       expect(screen.getByText(mockSteps[2].prompt)).toBeInTheDocument();
     });
-    
+
     // Select options for third step (multiselect type)
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[0]); // Select first option
-    
+
     // Submit third step
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
 
@@ -445,14 +462,14 @@ describe('QuestionnaireWizard', () => {
     // Select an option for fourth step (multiselect type)
     const integrationCheckboxes = screen.getAllByRole('checkbox');
     fireEvent.click(integrationCheckboxes[0]); // Select first option
-    
+
     // Last step should show "Finish" button
     const finishButton = screen.getByRole('button', { name: /finish/i });
     expect(finishButton).toBeInTheDocument();
-    
+
     // Submit final step
     fireEvent.click(finishButton);
-    
+
     // Should call completeQuestionnaire
     await waitFor(() => {
       const completeQuestionnaire = (convexReact.useMutation as MockedFunction).mock.results[2].value;
@@ -466,18 +483,18 @@ describe('QuestionnaireWizard', () => {
   // Tests for rendering different input types
   test('should render select input for select-type question', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // Go to second step (select type)
     const nextButton = screen.getByRole('button', { name: /next/i });
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step 1 answer' } });
     fireEvent.click(nextButton);
-    
+
     // Check select component is rendered
     await waitFor(() => {
       expect(screen.getByText(mockSteps[1].prompt)).toBeInTheDocument();
       expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
-    
+
     // Check options are available when clicked
     fireEvent.click(screen.getByRole('combobox'));
     await waitFor(() => {
@@ -486,62 +503,62 @@ describe('QuestionnaireWizard', () => {
       });
     });
   });
-  
+
   test('should render checkboxes for multiselect-type question', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // Navigate to the third step (multiselect)
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     // Submit first step
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step 1 answer' } });
     fireEvent.click(nextButton);
-    
+
     // Wait for second step, then submit it
     await waitFor(() => {
       expect(screen.getByText(mockSteps[1].prompt)).toBeInTheDocument();
     });
-    
+
     // Select an option for the select input
     const selectTrigger = screen.getByRole('combobox');
     fireEvent.click(selectTrigger);
     await waitFor(() => {
       fireEvent.click(screen.getByRole('option', { name: 'EHR' }));
     });
-    
+
     // Submit second step
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    
+
     // Verify multiselect rendering for success metrics
     await waitFor(() => {
       expect(screen.getByText(mockSteps[2].prompt)).toBeInTheDocument();
-      
+
       // Check all options are rendered with checkboxes
       mockSteps[2].options?.forEach(option => {
         expect(screen.getByText(option)).toBeInTheDocument();
       });
-      
+
       // Should have checkboxes (one for each option)
       expect(screen.getAllByRole('checkbox').length).toBe(mockSteps[2].options?.length || 0);
     });
-    
+
     // Test selecting multiple options
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[0]);
     fireEvent.click(checkboxes[2]);
-    
+
     // Submit with multiple selections
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    
+
     // Verify fourth step (integration-points) multiselect rendering
     await waitFor(() => {
       expect(screen.getByText(mockSteps[3].prompt)).toBeInTheDocument();
-      
+
       // Check all options are rendered with checkboxes
       mockSteps[3].options?.forEach(option => {
         expect(screen.getByText(option)).toBeInTheDocument();
       });
-      
+
       // Should have checkboxes (one for each option)
       expect(screen.getAllByRole('checkbox').length).toBe(mockSteps[3].options?.length || 0);
     });
@@ -550,77 +567,77 @@ describe('QuestionnaireWizard', () => {
   // Add a new test for radio input type
   test('should render radio buttons for radio-type question', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // Navigate to the fifth step (radio type)
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     // Submit first step
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step 1 answer' } });
     fireEvent.click(nextButton);
-    
+
     // Wait for second step, then submit it
     await waitFor(() => {
       expect(screen.getByText(mockSteps[1].prompt)).toBeInTheDocument();
     });
-    
+
     // Select an option for the select input
     const selectTrigger = screen.getByRole('combobox');
     fireEvent.click(selectTrigger);
     await waitFor(() => {
       fireEvent.click(screen.getByRole('option', { name: 'EHR' }));
     });
-    
+
     // Submit second step
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    
+
     // Wait for third step (multiselect), then submit it
     await waitFor(() => {
       expect(screen.getByText(mockSteps[2].prompt)).toBeInTheDocument();
     });
-    
+
     // Select an option for the multiselect
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[0]); // Select first option
-    
+
     // Submit third step
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    
+
     // Wait for fourth step (integration-points), then submit it
     await waitFor(() => {
       expect(screen.getByText(mockSteps[3].prompt)).toBeInTheDocument();
     });
-    
+
     // Select an option for integration points
     const integrationCheckboxes = screen.getAllByRole('checkbox');
     fireEvent.click(integrationCheckboxes[0]); // Select first option
-    
+
     // Submit fourth step
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    
+
     // Verify radio button rendering for regulatory constraints
     await waitFor(() => {
       expect(screen.getByText(mockSteps[4].prompt)).toBeInTheDocument();
-      
+
       // Check all options are rendered with radio buttons
       mockSteps[4].options?.forEach(option => {
         expect(screen.getByText(option)).toBeInTheDocument();
       });
-      
+
       // Check the radio buttons are rendered
       const radioButtons = screen.getAllByRole('radio');
       expect(radioButtons.length).toBe(mockSteps[4].options?.length || 0);
     });
-    
+
     // Select "Yes" option
     const radioButtons = screen.getAllByRole('radio');
     fireEvent.click(radioButtons[0]); // Select "Yes"
-    
+
     // Verify the radio value is selected
     expect(radioButtons[0]).toBeChecked();
-    
+
     // Submit with radio selection
     fireEvent.click(screen.getByRole('button', { name: /finish/i }));
-    
+
     // Verify the saveAnswer call with radio selection
     await waitFor(() => {
       const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
@@ -635,10 +652,10 @@ describe('QuestionnaireWizard', () => {
   // Add a test for Likert scale radio input
   test('should render Likert scale radio buttons for AI literacy step', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // Navigate through 5 steps to reach the 6th step (AI literacy)
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     // Submit all previous steps
     for (let i = 0; i < 5; i++) {
       // For step 1 (text input)
@@ -663,41 +680,41 @@ describe('QuestionnaireWizard', () => {
           fireEvent.click(radioButtons[0]);
         }
       }
-      
+
       // Click Next to proceed to next step
       fireEvent.click(nextButton);
-      
+
       // Wait for the next step to appear
       await waitFor(() => {
         expect(screen.getByText(mockSteps[i + 1].prompt)).toBeInTheDocument();
       });
     }
-    
+
     // Now we should be on the 6th step (AI literacy)
     // Verify Likert scale radio rendering
     await waitFor(() => {
       expect(screen.getByText(mockSteps[5].prompt)).toBeInTheDocument();
-      
+
       // Check all options are rendered with radio buttons
       mockSteps[5].options?.forEach(option => {
         expect(screen.getByText(option)).toBeInTheDocument();
       });
-      
+
       // Check the radio buttons are rendered - should be 5 for the Likert scale
       const radioButtons = screen.getAllByRole('radio');
       expect(radioButtons.length).toBe(5);
     });
-    
+
     // Select "5 (Very confident)" option
     const radioButtons = screen.getAllByRole('radio');
     fireEvent.click(radioButtons[4]); // Select the highest confidence level
-    
+
     // Verify the radio value is selected
     expect(radioButtons[4]).toBeChecked();
-    
+
     // Submit with radio selection
     fireEvent.click(screen.getByRole('button', { name: /finish/i }));
-    
+
     // Verify the saveAnswer call with the Likert scale selection
     await waitFor(() => {
       const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
@@ -712,10 +729,10 @@ describe('QuestionnaireWizard', () => {
   // Add a test for privacy risk tolerance multiselect
   test('should handle multiple selections for privacy risk tolerance step', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // Navigate through 6 steps to reach the 7th step (privacy risk tolerance)
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     // Submit all previous steps
     for (let i = 0; i < 6; i++) {
       // For step 1 (text input)
@@ -740,39 +757,39 @@ describe('QuestionnaireWizard', () => {
           fireEvent.click(radioButtons[0]);
         }
       }
-      
+
       // Click Next to proceed to next step
       fireEvent.click(nextButton);
-      
+
       // Wait for the next step to appear
       await waitFor(() => {
         expect(screen.getByText(mockSteps[i + 1].prompt)).toBeInTheDocument();
       });
     }
-    
+
     // Now we should be on the 7th step (privacy risk tolerance)
     // Verify multiselect rendering
     await waitFor(() => {
       expect(screen.getByText(mockSteps[6].prompt)).toBeInTheDocument();
-      
+
       // Check all options are rendered with checkboxes
       mockSteps[6].options?.forEach(option => {
         expect(screen.getByText(option)).toBeInTheDocument();
       });
-      
+
       // Check the checkboxes are rendered
       const checkboxes = screen.getAllByRole('checkbox');
       expect(checkboxes.length).toBe(mockSteps[6].options?.length || 0);
     });
-    
+
     // Select multiple options - patient data leakage and high implementation cost
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[1]); // Patient data leakage
     fireEvent.click(checkboxes[5]); // High implementation cost
-    
+
     // Submit with multiple selections
     fireEvent.click(screen.getByRole('button', { name: /finish/i }));
-    
+
     // Verify the saveAnswer call with the multiple selections
     await waitFor(() => {
       const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
@@ -790,10 +807,10 @@ describe('QuestionnaireWizard', () => {
   // Add a test for budget procurement slider
   test('should render and interact with budget slider', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // Navigate through 7 steps to reach the 8th step (budget procurement)
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     // Submit all previous steps
     for (let i = 0; i < 7; i++) {
       // For step 1 (text input)
@@ -818,37 +835,37 @@ describe('QuestionnaireWizard', () => {
           fireEvent.click(radioButtons[0]);
         }
       }
-      
+
       // Click Next to proceed to next step
       fireEvent.click(nextButton);
-      
+
       // Wait for the next step to appear
       await waitFor(() => {
         expect(screen.getByText(mockSteps[i + 1].prompt)).toBeInTheDocument();
       });
     }
-    
+
     // Now we should be on the 8th step (budget procurement)
     // Verify slider rendering
     await waitFor(() => {
       expect(screen.getByText(mockSteps[7].prompt)).toBeInTheDocument();
-      
+
       // Check min and max values are displayed
       expect(screen.getByText('£0k')).toBeInTheDocument();
       expect(screen.getByText('£200k')).toBeInTheDocument();
-      
+
       // Check the slider is rendered
       const slider = screen.getByRole('slider');
       expect(slider).toBeInTheDocument();
     });
-    
+
     // Interact with the slider - setting value to 100
     const slider = screen.getByRole('slider');
     fireEvent.change(slider, { target: { value: 100 } });
-    
+
     // Submit with slider selection
     fireEvent.click(screen.getByRole('button', { name: /finish/i }));
-    
+
     // Verify the saveAnswer call with the slider value
     await waitFor(() => {
       const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
@@ -863,10 +880,10 @@ describe('QuestionnaireWizard', () => {
   // Add a test for decision roles radio inputs
   test('should render and interact with decision roles radio inputs', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // Navigate through 8 steps to reach the 9th step (decision roles)
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     // Submit all previous steps
     for (let i = 0; i < 8; i++) {
       // For step 1 (text input)
@@ -894,41 +911,41 @@ describe('QuestionnaireWizard', () => {
           fireEvent.change(slider, { target: { value: 100 } });
         }
       }
-      
+
       // Click Next to proceed to next step
       fireEvent.click(nextButton);
-      
+
       // Wait for the next step to appear
       await waitFor(() => {
         expect(screen.getByText(mockSteps[i + 1].prompt)).toBeInTheDocument();
       });
     }
-    
+
     // Now we should be on the 9th step (decision roles)
     // Verify radio buttons rendering
     await waitFor(() => {
       expect(screen.getByText(mockSteps[8].prompt)).toBeInTheDocument();
-      
+
       // Check all options are rendered
       mockSteps[8].options?.forEach(option => {
         expect(screen.getByText(option)).toBeInTheDocument();
       });
-      
+
       // Check the radio buttons are rendered
       const radioButtons = screen.getAllByRole('radio');
       expect(radioButtons.length).toBe(mockSteps[8].options?.length || 0);
     });
-    
+
     // Select "CIO (Chief Information Officer)" option
     const radioButtons = screen.getAllByRole('radio');
     fireEvent.click(radioButtons[1]); // Select CIO option
-    
+
     // Verify the radio value is selected
     expect(radioButtons[1]).toBeChecked();
-    
+
     // Submit with radio selection
     fireEvent.click(screen.getByRole('button', { name: /finish/i }));
-    
+
     // Verify the saveAnswer call with the selected role
     await waitFor(() => {
       const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
@@ -943,10 +960,10 @@ describe('QuestionnaireWizard', () => {
   // Add a test for patient population multiselect
   test('should render and interact with patient population multiselect', async () => {
     render(<QuestionnaireWizard />);
-    
+
     // Navigate through 9 steps to reach the 10th step (patient population)
     const nextButton = screen.getByRole('button', { name: /next/i });
-    
+
     // Submit all previous steps
     for (let i = 0; i < 9; i++) {
       // For step 1 (text input)
@@ -974,39 +991,39 @@ describe('QuestionnaireWizard', () => {
           fireEvent.change(slider, { target: { value: 100 } });
         }
       }
-      
+
       // Click Next to proceed to next step
       fireEvent.click(nextButton);
-      
+
       // Wait for the next step to appear
       await waitFor(() => {
         expect(screen.getByText(mockSteps[i + 1].prompt)).toBeInTheDocument();
       });
     }
-    
+
     // Now we should be on the 10th step (patient population)
     // Verify multiselect rendering
     await waitFor(() => {
       expect(screen.getByText(mockSteps[9].prompt)).toBeInTheDocument();
-      
+
       // Check all options are rendered with checkboxes
       mockSteps[9].options?.forEach(option => {
         expect(screen.getByText(option)).toBeInTheDocument();
       });
-      
+
       // Check the checkboxes are rendered
       const checkboxes = screen.getAllByRole('checkbox');
       expect(checkboxes.length).toBe(mockSteps[9].options?.length || 0);
     });
-    
+
     // Select multiple options
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[2]); // Paediatric focus
     fireEvent.click(checkboxes[3]); // Geriatric focus
-    
+
     // Submit with multiple selections
     fireEvent.click(screen.getByRole('button', { name: /finish/i }));
-    
+
     // Verify the saveAnswer call with the multiple selections
     await waitFor(() => {
       const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;

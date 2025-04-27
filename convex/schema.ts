@@ -4,34 +4,38 @@ import { authTables } from "@convex-dev/auth/server";
 
 const applicationTables = {
   questionnaires: defineTable({
-    userId: v.id("users"),
+    userId: v.string(),
     status: v.string(),
-    startedAt: v.number(),
     completedAt: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_status", ["status"]),
   steps: defineTable({
-    prdId: v.string(),
     index: v.number(),
-    type: v.string(),
+    prdId: v.string(),
+    type: v.union(
+      v.literal("text"),
+      v.literal("select"),
+      v.literal("multiselect"),
+      v.literal("radio"),
+      v.literal("slider")
+    ),
     prompt: v.string(),
-    title: v.optional(v.string()),
     options: v.optional(v.array(v.string())),
-  })
-    .index("by_prdId", ["prdId"])
-    .index("by_index", ["index"]),
+  }).index("by_index", ["index"]),
   answers: defineTable({
     questionnaireId: v.id("questionnaires"),
     stepId: v.id("steps"),
-    value: v.union(v.string(), v.array(v.string())),
+    value: v.union(v.string(), v.array(v.string()), v.number()),
     skipped: v.boolean(),
-  }).index("by_questionnaire", ["questionnaireId"]),
+  })
+    .index("by_questionnaire", ["questionnaireId"])
+    .index("by_questionnaire_and_step", ["questionnaireId", "stepId"]),
   users: defineTable({
+    tokenIdentifier: v.string(),
     email: v.optional(v.string()),
-    role: v.optional(v.string()),
-    isAnonymous: v.optional(v.boolean()),
-  }).index("by_email", ["email"]),
+    name: v.optional(v.string()),
+  }).index("by_token", ["tokenIdentifier"]),
 };
 
 export default defineSchema({

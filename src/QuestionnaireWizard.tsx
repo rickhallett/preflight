@@ -196,7 +196,7 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
                   const min = parseInt(currentQuestion.options?.[0] || "0");
                   const max = parseInt(currentQuestion.options?.[1] || "100");
                   const step = parseInt(currentQuestion.options?.[2] || "1");
-                  
+
                   return (
                     <FormItem>
                       <FormControl>
