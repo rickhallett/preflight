@@ -6,6 +6,19 @@ import { execSync } from "node:child_process"; // Import execSync
 import { Buffer } from "node:buffer"; // For Base64 encoding
 
 const PRD_DIR = path.resolve(process.cwd(), "specs/prds");
+const VALID_STEP_TYPES = [
+  "text",
+  "select",
+  "multiselect",
+  "radio",
+  "slider",
+  "number",
+  "multiselect_with_slider",
+  "dual_slider",
+  "matrix",
+  "ranked_choice",
+  "conditional"
+];
 
 async function listPrdFiles() {
   const prdPath = path.resolve(process.cwd(), PRD_DIR);
@@ -43,6 +56,14 @@ async function parsePrd(filePath) {
       console.warn(`Warning: Missing required fields (id, title, prompt, input_type, convex_step_type) in ${path.basename(filePath)}`);
       return null;
     }
+
+    // Validate step type
+    if (!VALID_STEP_TYPES.includes(data.convex_step_type)) {
+      console.warn(`Warning: Invalid convex_step_type "${data.convex_step_type}" in ${path.basename(filePath)}. Valid types are: ${VALID_STEP_TYPES.join(', ')}`);
+      console.warn(`Defaulting to "text" type for ${data.id}`);
+      data.convex_step_type = "text";
+    }
+
     return data;
   } catch (error) {
     console.error(`Error parsing PRD file ${path.basename(filePath)}:`, error);
@@ -84,6 +105,7 @@ async function seedSteps() {
       prompt: prdData.prompt,
       type: prdData.convex_step_type,
       options: prdData.options || [],
+      sliderOptions: prdData.sliderOptions || [],
     };
 
     try {

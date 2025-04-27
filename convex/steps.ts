@@ -60,8 +60,21 @@ const stepDataValidator = v.object({
   index: v.number(),
   title: v.string(),
   prompt: v.string(),
-  type: v.string(),
+  type: v.union(
+    v.literal("text"),
+    v.literal("select"),
+    v.literal("multiselect"),
+    v.literal("radio"),
+    v.literal("slider"),
+    v.literal("number"),
+    v.literal("multiselect_with_slider"),
+    v.literal("dual_slider"),
+    v.literal("matrix"),
+    v.literal("ranked_choice"),
+    v.literal("conditional")
+  ),
   options: v.optional(v.array(v.string())),
+  sliderOptions: v.optional(v.array(v.string())),
 });
 
 export const addOrUpdateStep = internalMutation({
@@ -109,7 +122,7 @@ export const list = query({
       .order("asc")
       .collect();
 
-    // Transform step-02 into a compound step if needed
+    // Transform/enhance steps with needed data
     return steps.map(step => {
       if (step.prdId === "step-02-data-sources") {
         // Set proper options for the multiselect part
@@ -131,6 +144,20 @@ export const list = query({
             sliderOptions: ["0", "100", "1"] // min, max, step
           };
         }
+      }
+      else if (step.prdId === "step-08-budget-procurement") {
+        // Set proper options for the budget slider
+        return {
+          ...step,
+          sliderOptions: ["0", "200", "10"] // £0k to £200k in steps of 10k
+        };
+      }
+      else if (step.prdId === "step-24-data-labeling-capacity") {
+        // Set proper options for the data labeling capacity slider
+        return {
+          ...step,
+          sliderOptions: ["0", "100", "5"] // 0% to 100% in steps of 5%
+        };
       }
       return step;
     });

@@ -68,7 +68,7 @@ const applicationTables = {
     .index("by_questionnaire", ["questionnaireId"])
     .index("by_questionnaire_and_step", ["questionnaireId", "stepId"]),
   users: defineTable({
-    tokenIdentifier: v.string(),
+    tokenIdentifier: v.optional(v.string()),
     email: v.optional(v.string()),
     name: v.optional(v.string()),
     role: v.optional(v.string()),

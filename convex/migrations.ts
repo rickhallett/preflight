@@ -11,8 +11,21 @@ const stepDataValidator = v.object({
   index: v.number(),
   title: v.string(),
   prompt: v.string(),
-  type: v.string(),
+  type: v.union(
+    v.literal("text"),
+    v.literal("select"),
+    v.literal("multiselect"),
+    v.literal("radio"),
+    v.literal("slider"),
+    v.literal("number"),
+    v.literal("multiselect_with_slider"),
+    v.literal("dual_slider"),
+    v.literal("matrix"),
+    v.literal("ranked_choice"),
+    v.literal("conditional")
+  ),
   options: v.optional(v.array(v.string())),
+  sliderOptions: v.optional(v.array(v.string())),
 });
 
 // Action now takes Base64 encoded JSON string

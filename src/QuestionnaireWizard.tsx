@@ -164,6 +164,18 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
     }
   };
 
+  // Helper function to get slider value display format based on step
+  const getSliderDisplayFormat = (prdId: string, value: number) => {
+    switch (prdId) {
+      case "step-08-budget-procurement":
+        return `£${value}k`;
+      case "step-24-data-labeling-capacity":
+        return `${value}%`;
+      default:
+        return value;
+    }
+  };
+
   return (
     <FormProvider {...form}> {/* Provide form context */}
       <Form {...form}>
@@ -260,12 +272,17 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
               <FormField
                 control={form.control}
                 name={fieldName}
-                defaultValue={parseInt(currentQuestion.options?.[0] || "0")}
+                defaultValue={parseInt(currentQuestion.sliderOptions?.[0] || "0")}
                 render={({ field }) => {
                   // Extract min, max, and step from options
-                  const min = parseInt(currentQuestion.options?.[0] || "0");
-                  const max = parseInt(currentQuestion.options?.[1] || "100");
-                  const step = parseInt(currentQuestion.options?.[2] || "1");
+                  const min = parseInt(currentQuestion.sliderOptions?.[0] || "0");
+                  const max = parseInt(currentQuestion.sliderOptions?.[1] || "100");
+                  const step = parseInt(currentQuestion.sliderOptions?.[2] || "1");
+
+                  // Get format based on step ID
+                  const minDisplay = getSliderDisplayFormat(currentQuestion.prdId, min);
+                  const maxDisplay = getSliderDisplayFormat(currentQuestion.prdId, max);
+                  const valueDisplay = getSliderDisplayFormat(currentQuestion.prdId, field.value || min);
 
                   return (
                     <FormItem>
@@ -279,9 +296,9 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
                             onValueChange={(values) => field.onChange(values[0])}
                           />
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">£{min}k</span>
-                            <span className="font-medium">Selected: £{field.value || min}k</span>
-                            <span className="text-muted-foreground">£{max}k</span>
+                            <span className="text-muted-foreground">{minDisplay}</span>
+                            <span className="font-medium">Selected: {valueDisplay}</span>
+                            <span className="text-muted-foreground">{maxDisplay}</span>
                           </div>
                         </div>
                       </FormControl>
