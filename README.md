@@ -60,3 +60,42 @@ Run the automated consistency test (useful for CI/CD):
 ```bash
 bun run scripts/automated_testing/test_prd_consistency.mjs
 ```
+
+## Input Data Validation Framework
+
+The project includes a validation framework that allows you to specify validation rules for each step in the questionnaire. These rules are used both on the client and server to ensure data integrity.
+
+### Validation Rules
+
+You can specify validation rules in the PRD files using the following format:
+
+```yaml
+validation:
+  required: true  # Whether the field is required
+  minLength: 10   # Minimum text length (for text inputs)
+  maxLength: 500  # Maximum text length
+  minValue: 0     # Minimum numeric value
+  maxValue: 100   # Maximum numeric value
+  pattern: "^[A-Za-z0-9]+$"  # Regex pattern for validation
+  customValidation: "isValidEmail"  # Reference to a custom validation function
+  errorMessage: "Please enter a valid email address"  # Custom error message
+```
+
+### Client-Side Validation
+
+The validation framework uses Zod schemas to validate form inputs on the client side. The validation rules are converted to Zod schemas dynamically based on the question type.
+
+### Server-Side Validation
+
+All form inputs are also validated on the server side to ensure data integrity, even if the client-side validation is bypassed.
+
+### Custom Validation Functions
+
+The validation framework supports custom validation functions that can be referenced by name. Currently supported functions include:
+
+- `isValidEmail`: Validates email addresses
+- `isValidURL`: Validates URLs
+- `isNumericOnly`: Validates that a string contains only numbers
+- `isAlphaOnly`: Validates that a string contains only letters
+- `isAlphanumericOnly`: Validates that a string contains only letters and numbers
+- `noSpecialChars`: Validates that a string contains only letters, numbers, and spaces

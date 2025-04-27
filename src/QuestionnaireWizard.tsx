@@ -38,6 +38,8 @@ import { RangeSliderWithLabels } from "@/components/ui/range-slider-with-labels"
 import { VisualSelector } from "@/components/ui/visual-selector";
 import { CondensedCheckboxGrid } from "@/components/ui/condensed-checkbox-grid";
 import { HierarchicalSelect } from "@/components/ui/hierarchical-select";
+// Import validation utilities
+import { buildSchemaForQuestion, ValidationRules } from "@/lib/validation";
 
 interface QuestionnaireWizardProps {
   onComplete?: () => void;
@@ -49,6 +51,7 @@ const formSchema = z.record(z.string(), z.any());
 export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [questionnaireId, setQuestionnaireId] = useState<Id<"questionnaires"> | null>(null);
+  const [dynamicSchema, setDynamicSchema] = useState<z.ZodType<any>>(formSchema);
 
   const steps = useQuery(api.steps.list);
   const createQuestionnaire = useMutation(api.questionnaires.createQuestionnaire);
@@ -56,7 +59,7 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
   const completeQuestionnaire = useMutation(api.questionnaires.completeQuestionnaire);
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(dynamicSchema),
   });
 
   if (!steps) return <div>Loading steps...</div>;
@@ -64,6 +67,40 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
 
   const currentQuestion = steps[currentStepIndex];
   const fieldName = currentQuestion.prdId ?? currentQuestion._id;
+
+  // Update the form schema when the current question changes
+  useEffect(() => {
+    // Build a schema for the current field
+    const validation = currentQuestion.validation as ValidationRules | undefined;
+    const fieldSchema = buildSchemaForQuestion(currentQuestion.type, validation);
+
+    // Create a dynamic schema with just this field being validated
+    const newSchema = z.object({
+      [fieldName]: fieldSchema,
+    }).passthrough();
+
+    // Special handling for complex question types
+    if (currentQuestion.type === "multiselect_with_slider") {
+      const dataTypesSchema = buildSchemaForQuestion("multiselect", validation);
+      const completenessSchema = buildSchemaForQuestion("slider", validation);
+
+      const enhancedSchema = newSchema.extend({
+        [`${fieldName}_dataTypes`]: dataTypesSchema,
+        [`${fieldName}_completeness`]: completenessSchema,
+      });
+
+      setDynamicSchema(enhancedSchema);
+    } else if (currentQuestion.type === "dual_slider") {
+      const enhancedSchema = newSchema.extend({
+        [`${fieldName}_min`]: z.number().optional(),
+        [`${fieldName}_max`]: z.number().optional(),
+      });
+
+      setDynamicSchema(enhancedSchema);
+    } else {
+      setDynamicSchema(newSchema);
+    }
+  }, [currentStepIndex, steps]);
 
   const onSubmit = async (formData: z.infer<typeof formSchema>) => {
     const value = formData[fieldName];
@@ -153,8 +190,17 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
         isSkipped = !value || (Array.isArray(value) && value.length === 0);
     }
 
-    if (isSkipped && !confirm("Skip this question?")) {
+    // Check if the question is required and the user is trying to skip it
+    if (isSkipped && currentQuestion.validation?.required) {
+      toast.error(currentQuestion.validation.errorMessage || "This question is required");
       return;
+    }
+
+    // If skipped but optional, confirm the skip
+    if (isSkipped && !currentQuestion.validation?.required) {
+      if (!confirm("Skip this question?")) {
+        return;
+      }
     }
 
     try {
@@ -221,6 +267,11 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
 
           <div className="bg-card rounded-lg p-6 shadow-sm border mb-6">
             <h3 className="text-xl font-semibold mb-4">{currentQuestion.prompt}</h3>
+
+            {/* Display required indicator if validation requires it */}
+            {currentQuestion.validation?.required && (
+              <div className="text-sm text-red-500 mb-2">* Required</div>
+            )}
 
             {/* Simple question types */}
             {currentQuestion.type === "text" && (
@@ -344,7 +395,8 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
                     <FormControl>
                       <Input
                         type="number"
-                        min="1"
+                        min={currentQuestion.validation?.minValue}
+                        max={currentQuestion.validation?.maxValue}
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />

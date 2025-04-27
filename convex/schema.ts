@@ -58,6 +58,16 @@ const applicationTables = {
     rows: v.optional(v.array(v.string())),
     columns: v.optional(v.array(v.string())),
     hierarchicalOptions: v.optional(v.any()),
+    validation: v.optional(v.object({
+      required: v.optional(v.boolean()),
+      minLength: v.optional(v.number()),
+      maxLength: v.optional(v.number()),
+      minValue: v.optional(v.number()),
+      maxValue: v.optional(v.number()),
+      pattern: v.optional(v.string()),
+      customValidation: v.optional(v.string()),
+      errorMessage: v.optional(v.string())
+    })),
   })
     .index("by_index", ["index"])
     .index("by_prdId", ["prdId"]),

@@ -158,6 +158,71 @@ function validatePrdConsistency(prdData, stepIndex) {
       break;
   }
 
+  // Validate validation rules if present
+  if (prdData.validation) {
+    // Check that validation is an object
+    if (typeof prdData.validation !== 'object') {
+      validationIssues.push(`Validation must be an object`);
+    } else {
+      // Check for valid validation properties
+      const { required, minLength, maxLength, minValue, maxValue, pattern, customValidation, errorMessage } = prdData.validation;
+
+      // Validate required is a boolean if present
+      if (required !== undefined && typeof required !== 'boolean') {
+        validationIssues.push(`validation.required must be a boolean, got ${typeof required}`);
+      }
+
+      // Validate minLength and maxLength are numbers if present
+      if (minLength !== undefined && (typeof minLength !== 'number' || minLength < 0)) {
+        validationIssues.push(`validation.minLength must be a non-negative number, got ${minLength}`);
+      }
+      if (maxLength !== undefined && (typeof maxLength !== 'number' || maxLength < 0)) {
+        validationIssues.push(`validation.maxLength must be a non-negative number, got ${maxLength}`);
+      }
+
+      // Validate minLength <= maxLength if both present
+      if (minLength !== undefined && maxLength !== undefined && minLength > maxLength) {
+        validationIssues.push(`validation.minLength (${minLength}) must be <= maxLength (${maxLength})`);
+      }
+
+      // Validate minValue and maxValue are numbers if present
+      if (minValue !== undefined && typeof minValue !== 'number') {
+        validationIssues.push(`validation.minValue must be a number, got ${typeof minValue}`);
+      }
+      if (maxValue !== undefined && typeof maxValue !== 'number') {
+        validationIssues.push(`validation.maxValue must be a number, got ${typeof maxValue}`);
+      }
+
+      // Validate minValue <= maxValue if both present
+      if (minValue !== undefined && maxValue !== undefined && minValue > maxValue) {
+        validationIssues.push(`validation.minValue (${minValue}) must be <= maxValue (${maxValue})`);
+      }
+
+      // Validate pattern is a valid regex if present
+      if (pattern !== undefined) {
+        if (typeof pattern !== 'string') {
+          validationIssues.push(`validation.pattern must be a string, got ${typeof pattern}`);
+        } else {
+          try {
+            new RegExp(pattern);
+          } catch (e) {
+            validationIssues.push(`validation.pattern is not a valid regex: ${pattern}`);
+          }
+        }
+      }
+
+      // Validate customValidation is a string if present
+      if (customValidation !== undefined && typeof customValidation !== 'string') {
+        validationIssues.push(`validation.customValidation must be a string, got ${typeof customValidation}`);
+      }
+
+      // Validate errorMessage is a string if present
+      if (errorMessage !== undefined && typeof errorMessage !== 'string') {
+        validationIssues.push(`validation.errorMessage must be a string, got ${typeof errorMessage}`);
+      }
+    }
+  }
+
   // Special validations for known PRD IDs
   if (prdData.id === "step-02-data-sources" && prdData.convex_step_type === "multiselect_with_slider") {
     if (!prdData.options || !prdData.options.some(opt => opt.includes("clinical"))) {

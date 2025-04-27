@@ -55,6 +55,18 @@ export const seedSteps = mutation({
   },
 });
 
+// Define validation schema validator
+const validationSchemaValidator = v.optional(v.object({
+  required: v.optional(v.boolean()),
+  minLength: v.optional(v.number()),
+  maxLength: v.optional(v.number()),
+  minValue: v.optional(v.number()),
+  maxValue: v.optional(v.number()),
+  pattern: v.optional(v.string()),
+  customValidation: v.optional(v.string()),
+  errorMessage: v.optional(v.string())
+}));
+
 const stepDataValidator = v.object({
   prdId: v.string(),
   index: v.number(),
@@ -92,6 +104,8 @@ const stepDataValidator = v.object({
   rows: v.optional(v.array(v.string())),
   columns: v.optional(v.array(v.string())),
   hierarchicalOptions: v.optional(v.any()),
+  // Add validation schema
+  validation: validationSchemaValidator,
 });
 
 export const addOrUpdateStep = internalMutation({
