@@ -253,6 +253,15 @@ const mockSteps = [
       'Dedicated account manager / support contact',
       'Community forum'
     ],
+  },
+  {
+    _id: 'step17_id',
+    prdId: 'step-17-time-to-value',
+    index: 16,
+    title: 'Expected Time-to-Value',
+    prompt: 'In months, when should the AI show measurable ROI (Return on Investment)?',
+    type: 'number',
+    options: null,
   }
 ];
 
@@ -1033,6 +1042,53 @@ describe('QuestionnaireWizard', () => {
           'Paediatric focus',
           'Geriatric focus'
         ]),
+        skipped: false
+      }));
+    });
+  });
+
+  // Add the new test for number input type
+  test('should render and interact with number input for time-to-value step', async () => {
+    render(<QuestionnaireWizard />);
+
+    // Navigate to the 17th step (time-to-value with number input)
+    const nextButton = screen.getByRole('button', { name: /next/i });
+
+    // Set up index to navigate to step 17
+    // We'll simulate just going from the first step to the 17th step
+    // In a real scenario, we'd need to handle all intermediary steps
+    (convexReact.useQuery as Mock).mockReturnValue([
+      mockSteps[0], // First step for initial render
+      mockSteps[16] // Step 17 (time-to-value) as the second step for testing
+    ]);
+
+    // Submit first step
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Step answer' } });
+    fireEvent.click(nextButton);
+
+    // Wait for time-to-value step to appear
+    await waitFor(() => {
+      expect(screen.getByText(mockSteps[16].prompt)).toBeInTheDocument();
+    });
+
+    // Verify number input is rendered
+    const numberInput = screen.getByRole('spinbutton');
+    expect(numberInput).toBeInTheDocument();
+    expect(numberInput).toHaveAttribute('type', 'number');
+    expect(numberInput).toHaveAttribute('min', '1');
+
+    // Enter a value in the number input
+    fireEvent.change(numberInput, { target: { value: '6' } });
+
+    // Submit with number input
+    fireEvent.click(screen.getByRole('button', { name: /finish/i }));
+
+    // Verify the saveAnswer call with the numeric value
+    await waitFor(() => {
+      const saveAnswer = (convexReact.useMutation as MockedFunction).mock.results[1].value;
+      expect(saveAnswer).toHaveBeenCalled();
+      expect(saveAnswer).toHaveBeenCalledWith(expect.objectContaining({
+        value: 6, // Should be a number, not a string
         skipped: false
       }));
     });

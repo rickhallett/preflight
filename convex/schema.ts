@@ -18,7 +18,8 @@ const applicationTables = {
       v.literal("select"),
       v.literal("multiselect"),
       v.literal("radio"),
-      v.literal("slider")
+      v.literal("slider"),
+      v.literal("number")
     ),
     prompt: v.string(),
     options: v.optional(v.array(v.string())),

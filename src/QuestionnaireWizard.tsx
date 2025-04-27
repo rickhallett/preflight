@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 
 interface QuestionnaireWizardProps {
   onComplete?: () => void;
@@ -219,6 +220,26 @@ export default function QuestionnaireWizard({ onComplete }: QuestionnaireWizardP
                     </FormItem>
                   );
                 }}
+              />
+            )}
+
+            {currentQuestion.type === "number" && (
+              <FormField
+                control={form.control}
+                name={fieldName}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             )}
 

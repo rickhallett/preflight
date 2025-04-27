@@ -92,7 +92,7 @@ flowchart TD
     "fields": {
       "prdId": "string",
       "index": "number",
-      "type": "string",
+      "type": "string enum('text', 'select', 'multiselect', 'radio', 'slider', 'number')",
       "prompt": "string",
       "title": "string | null",
       "options": "string[] | null"
@@ -103,7 +103,7 @@ flowchart TD
     "fields": {
       "questionnaireId": "Id<\"questionnaires\">",
       "stepId": "Id<\"steps\">",
-      "value": "string | string[]",
+      "value": "string | string[] | number",
       "skipped": "boolean"
     },
     "indexes": ["by_questionnaire(questionnaireId)"]
