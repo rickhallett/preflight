@@ -8,7 +8,9 @@
     "dev:frontend": "vite --open",
     "dev:backend": "convex dev",
     "lint": "tsc -p convex -noEmit --pretty false && tsc -p . -noEmit --pretty false && convex dev --once && vite build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "audit:prd": "bun run scripts/prd_consistency_audit.mjs",
+    "fix:prd": "bun run scripts/prd_consistency_fix.mjs"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.30.0",

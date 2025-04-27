@@ -81,6 +81,105 @@ function extractIndexFromId(id) {
   return match ? parseInt(match[1], 10) - 1 : null;
 }
 
+/**
+ * Validate that the PRD data is consistent with best practices and schema requirements
+ */
+function validatePrdConsistency(prdData, stepIndex) {
+  const validationIssues = [];
+
+  // Check type-specific field requirements
+  switch (prdData.convex_step_type) {
+    case "select":
+    case "multiselect":
+    case "radio":
+      if (!prdData.options || !Array.isArray(prdData.options) || prdData.options.length === 0) {
+        validationIssues.push(`Missing or empty options array for '${prdData.convex_step_type}' type`);
+      }
+      break;
+
+    case "slider":
+      if (!prdData.sliderOptions || !Array.isArray(prdData.sliderOptions) || prdData.sliderOptions.length < 2) {
+        validationIssues.push(`Missing or incomplete sliderOptions for 'slider' type (need at least min and max)`);
+      }
+      break;
+
+    case "multiselect_with_slider":
+      if (!prdData.options || !Array.isArray(prdData.options) || prdData.options.length === 0) {
+        validationIssues.push(`Missing options array for 'multiselect_with_slider' type`);
+      }
+      if (!prdData.sliderOptions || !Array.isArray(prdData.sliderOptions) || prdData.sliderOptions.length < 2) {
+        validationIssues.push(`Missing sliderOptions for 'multiselect_with_slider' type`);
+      }
+      break;
+
+    case "range_slider_with_labels":
+      if (!prdData.sliderOptions || !Array.isArray(prdData.sliderOptions) || prdData.sliderOptions.length < 2) {
+        validationIssues.push(`Missing sliderOptions for 'range_slider_with_labels' type`);
+      }
+      if (!prdData.labels || !Array.isArray(prdData.labels) || prdData.labels.length < 2) {
+        validationIssues.push(`Missing labels array for 'range_slider_with_labels' type (need at least 2 labels)`);
+      }
+      break;
+
+    case "visual_selector":
+      if (!prdData.images || !Array.isArray(prdData.images) || prdData.images.length === 0) {
+        validationIssues.push(`Missing images array for 'visual_selector' type`);
+      }
+      break;
+
+    case "condensed_checkbox_grid":
+      if (!prdData.rows || !Array.isArray(prdData.rows) || prdData.rows.length === 0) {
+        validationIssues.push(`Missing rows array for 'condensed_checkbox_grid' type`);
+      }
+      if (!prdData.columns || !Array.isArray(prdData.columns) || prdData.columns.length === 0) {
+        validationIssues.push(`Missing columns array for 'condensed_checkbox_grid' type`);
+      }
+      break;
+
+    case "hierarchical_select":
+      if (!prdData.hierarchicalOptions) {
+        validationIssues.push(`Missing hierarchicalOptions for 'hierarchical_select' type`);
+      }
+      break;
+
+    case "dual_slider":
+      if (!prdData.sliderOptions || !Array.isArray(prdData.sliderOptions) || prdData.sliderOptions.length < 2) {
+        validationIssues.push(`Missing sliderOptions for 'dual_slider' type`);
+      }
+      break;
+
+    case "matrix":
+      if (!prdData.rows || !Array.isArray(prdData.rows) || prdData.rows.length === 0) {
+        validationIssues.push(`Missing rows array for 'matrix' type`);
+      }
+      if (!prdData.columns || !Array.isArray(prdData.columns) || prdData.columns.length === 0) {
+        validationIssues.push(`Missing columns array for 'matrix' type`);
+      }
+      break;
+  }
+
+  // Special validations for known PRD IDs
+  if (prdData.id === "step-02-data-sources" && prdData.convex_step_type === "multiselect_with_slider") {
+    if (!prdData.options || !prdData.options.some(opt => opt.includes("clinical"))) {
+      validationIssues.push(`step-02-data-sources should have clinical data options`);
+    }
+  }
+
+  if (prdData.id === "step-08-budget-procurement" && prdData.convex_step_type === "slider") {
+    if (!prdData.sliderOptions || prdData.sliderOptions[1] !== "200") {
+      validationIssues.push(`step-08-budget-procurement slider should go up to 200k`);
+    }
+  }
+
+  if (prdData.id === "step-24-data-labeling-capacity" && prdData.convex_step_type === "slider") {
+    if (!prdData.sliderOptions || prdData.sliderOptions[1] !== "100") {
+      validationIssues.push(`step-24-data-labeling-capacity slider should go up to 100%`);
+    }
+  }
+
+  return validationIssues;
+}
+
 async function seedSteps() {
   console.log("Starting step seeding process via local script calling convex run...");
   const prdFiles = await listPrdFiles();
@@ -88,6 +187,7 @@ async function seedSteps() {
 
   let successfulSeeds = 0;
   let failedSeeds = 0;
+  let validationWarnings = 0;
 
   for (const prdFile of prdFiles) {
     const prdData = await parsePrd(prdFile);
@@ -101,6 +201,23 @@ async function seedSteps() {
       console.warn(`Warning: Could not extract valid index (>=0) from ID "${prdData.id}" in ${path.basename(prdFile)}. Skipping.`);
       failedSeeds++;
       continue;
+    }
+
+    // Validate PRD consistency
+    const validationIssues = validatePrdConsistency(prdData, stepIndex);
+    if (validationIssues.length > 0) {
+      console.warn(`\nWarning: Validation issues found in ${path.basename(prdFile)}:`);
+      validationIssues.forEach(issue => console.warn(`  - ${issue}`));
+      validationWarnings++;
+
+      const continueWithIssues = process.env.FORCE_SEED === 'true' ||
+        await promptForConfirmation(`Continue seeding ${prdData.id} despite validation issues?`);
+
+      if (!continueWithIssues) {
+        console.warn(`Skipping ${prdData.id} due to validation issues.`);
+        failedSeeds++;
+        continue;
+      }
     }
 
     const stepDocPayload = {
@@ -154,10 +271,37 @@ async function seedSteps() {
   console.log("\nSeeding script finished.");
   console.log(`  Successfully processed: ${successfulSeeds}`);
   console.log(`  Failed/Skipped: ${failedSeeds}`);
+  console.log(`  Validation warnings: ${validationWarnings}`);
 
   if (failedSeeds > 0) {
     console.error("\nPlease review the warnings and errors above.");
     process.exit(1);
+  }
+
+  if (validationWarnings > 0) {
+    console.warn("\nValidation warnings were detected. Consider running the audit script:");
+    console.warn("  bun run scripts/prd_consistency_audit.mjs");
+  }
+}
+
+async function promptForConfirmation(message) {
+  if (process.stdin.isTTY) {
+    const readline = require('node:readline');
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    return new Promise(resolve => {
+      rl.question(`${message} (y/N) `, answer => {
+        rl.close();
+        resolve(answer.toLowerCase() === 'y');
+      });
+    });
+  } else {
+    // Non-interactive mode, default to NO
+    console.warn("Non-interactive mode, defaulting to NO for confirmation prompts");
+    return false;
   }
 }
 

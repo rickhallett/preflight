@@ -190,3 +190,16 @@ export const list = query({
     });
   },
 });
+
+// Add a new query to list all steps without authentication for auditing
+export const listAll = query({
+  args: {},
+  handler: async (ctx) => {
+    const steps = await ctx.db
+      .query("steps")
+      .order("asc")
+      .collect();
+
+    return steps;
+  },
+});
